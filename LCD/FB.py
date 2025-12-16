@@ -71,3 +71,63 @@ class FrameBuffer:
         
         with open(self.device, "wb") as fb:
             fb.write(frame_data)
+
+    def write_region(self, image, x, y, w, h):
+        """
+        Write only a specific region to framebuffer.
+        
+        Args:
+            image: PIL Image (should be w x h size)
+            x, y: Top-left position in framebuffer
+            w, h: Width and height of region
+        """
+        # Ensure image is the right size
+        if image.size != (w, h):
+            image = image.resize((w, h), Image.LANCZOS)
+        
+        # Convert to grayscale and get pixel data
+        image = image.convert('L')
+        img_array = np.array(image, dtype=np.uint8)
+        
+        # Open framebuffer for reading and writing
+        with open(self.device, "r+b") as fb:
+            for row in range(h):
+                # Calculate offset for this row
+                offset = ((y + row) * self.width + x) * 2  # 2 bytes per pixel
+                fb.seek(offset)
+                
+                # Convert row pixels
+                row_data = bytearray()
+                for col in range(w):
+                    pixel = 0xFFFF if img_array[row, col] <= 128 else 0x0000
+                    row_data.extend(pixel.to_bytes(2, byteorder='little'))
+                
+                fb.write(row_data)
+    
+    def toggle_region(self, x, y, w, h):
+        """
+        Toggle pixels in a region (invert black <-> white).
+        
+        Args:
+            x, y: Top-left position in framebuffer
+            w, h: Width and height of region to toggle
+        """
+        with open(self.device, "r+b") as fb:
+            for row in range(h):
+                # Calculate offset for this row
+                offset = ((y + row) * self.width + x) * 2  # 2 bytes per pixel
+                fb.seek(offset)
+                
+                # Read existing pixels
+                existing = fb.read(w * 2)
+                
+                # Toggle each pixel (XOR with 0xFFFF)
+                toggled = bytearray()
+                for i in range(0, len(existing), 2):
+                    pixel = int.from_bytes(existing[i:i+2], byteorder='little')
+                    pixel ^= 0xFFFF  # XOR to invert
+                    toggled.extend(pixel.to_bytes(2, byteorder='little'))
+                
+                # Write back
+                fb.seek(offset)
+                fb.write(toggled)
