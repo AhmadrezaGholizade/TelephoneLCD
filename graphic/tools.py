@@ -3,8 +3,8 @@ from LCD.FB import FrameBuffer
 from datetime import datetime
 import jdatetime
 
-class MainPage:
-    def render(self, draw, img, width, height):
+class Tools:
+    def render_main_page(self, draw, img, width, height):
         self.draw_clock(draw)
         self.draw_date(draw)
         self.draw_id(draw, img)
@@ -100,3 +100,4 @@ class MainPage:
             cx = (x0 + x1) // 2 + 1
             cy = (y0 + y1) // 2 + 2
             draw.text((cx, cy), txt, font=font, fill=fg, anchor="mm")
+            

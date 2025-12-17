@@ -11,7 +11,6 @@ event_queue = deque(maxlen=2)
 
 last_print_time = 0
 
-
 BUTTONS = {
     24: "Hist", 22: "Redial", 23: "DND", 21: "Menu",
     18: "1", 17: "2", 16: "3",
