@@ -10,7 +10,6 @@ class Tools:
         self.draw_id(draw, img)
         self.draw_buttons(draw, width, height)
 
-    # ================= CLOCK =================
     def draw_clock(self, draw,
                pos_hour=(15, 20),
                pos_colon=(30, 27),
@@ -30,12 +29,6 @@ class Tools:
         draw.text(pos_hour, h, font=font, fill=color, anchor="mm")
         draw.text(pos_min, m, font=font, fill=color, anchor="mm")
 
-        # # Blink colon
-        # colon_color = color if (sec % 2 == 0) else bg
-        # draw.text(pos_colon, ":", font=font, fill=colon_color, anchor="mm")
-
-
-    # ================= DATE =================
     def draw_date(self,draw,
                 rect=(73, 18, 125, 30),
                 text_pos=(99, 25),
@@ -53,8 +46,6 @@ class Tools:
         draw.rectangle(rect, fill=bg)
         draw.text(text_pos, date_str, font=font, fill=fg, anchor="mm")
 
-
-    # ================= ID =================
     def draw_id(self,draw,
                 img,
                 example_id="54342113",
@@ -66,15 +57,11 @@ class Tools:
                 font_size=10,
                 color="black"):
 
-        icon = Image.open(icon_path).convert("RGBA")
-        icon = icon.resize(icon_size, Image.LANCZOS)
-        img.paste(icon, icon_pos, icon)
+        self.draw_icon(draw, img, icon_path, icon_size, icon_pos)
 
         font = ImageFont.truetype(font_path, font_size)
         draw.text(text_pos, example_id, font=font, fill=color, anchor="mm")
 
-
-    # ================= BUTTONS =================
     def draw_buttons(self,draw,
                     fb_width,
                     fb_height,
@@ -100,4 +87,60 @@ class Tools:
             cx = (x0 + x1) // 2 + 1
             cy = (y0 + y1) // 2 + 2
             draw.text((cx, cy), txt, font=font, fill=fg, anchor="mm")
+
+    def draw_contact_rows(self, draw, contacts, CONTACT_INDEX, CONTACT_PAGE_NUMBER):
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
+        number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
+
+        for n, i in enumerate(range(CONTACT_PAGE_NUMBER * 3, min(CONTACT_PAGE_NUMBER * 3 + 3, len(contacts)))):
+            name = contacts[i]["nick_name"].strip()
+            print_name = name[:22] + "..." if len(name) > 22 else name
+
+            # Black Theme for Selected Contact
+            color = "black"
+            if i == CONTACT_INDEX:
+                color = "white"
+                draw.rectangle([1, 11 + 13 * n, 122, 9 + 13 * (n+1)], fill="black")
+                
+            # Name    
+            draw.text((3, 10 + 12 * n), print_name, font=name_font, fill=color)
+
+    def draw_header(self, draw, header="Contacts"):
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
+        draw.rectangle([1, 0, 122, 9], fill="black")
+        draw.text((37, -2), header, font=name_font, fill="white")
+
+    def draw_border(self, draw, width=1):
+        draw.rectangle([0, 0, 127, 47], outline="black", width=width)
+
+    def draw_scrollbar(self, draw, CONTACT_PAGE_NUMBER, len_contacts):
+        draw.rectangle([124, 0, 124, 48], fill="black") # seperator line
+        page_ratio = 3 / len_contacts * 48
+        draw.rectangle([125, CONTACT_PAGE_NUMBER * page_ratio, 127, (CONTACT_PAGE_NUMBER + 1) * page_ratio], fill="black")
+
+    def draw_icon(self, draw, img, icon_path, icon_size, icon_pos):
+        icon = Image.open(icon_path).convert("RGBA")
+        icon = icon.resize(icon_size, Image.LANCZOS)
+        img.paste(icon, icon_pos, icon)
+
+    def draw_contact_info(self, draw, img, contact, fb_width, fb_height):
+        self.draw_icon(draw, img, "./img/person.png", (14, 14), (3,3))
+        self.draw_icon(draw, img, "./img/tel.png", (14, 14), (3,17))
+
+        name = contact["nick_name"].strip()
+        print_name = name[:18] + "..." if len(name) > 18 else name
+
+        number = contact["phone_number"].strip()
+        print_number = number[:20] + "..." if len(number) > 20 else number
+
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 12)
+        draw.text((18, 1), print_name, font=name_font, fill="black")
+
+        number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
+        draw.text((18, 19), print_number, font=number_font, fill="black")
+
+        self.draw_buttons(draw, fb_width, fb_height, texts=("Back", "Call", "", ""))
+
+
+
             

@@ -63,35 +63,12 @@ while True:
         
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
-            draw.rectangle([0, 0, 127, 47], outline="black")
 
-            # ====== CONTACTS =======
-            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
-            number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
+            tools.draw_border(draw)
+            tools.draw_contact_rows(draw, contacts, CONTACT_INDEX, CONTACT_PAGE_NUMBER)
+            tools.draw_scrollbar(draw, CONTACT_PAGE_NUMBER, len(contacts))
+            tools.draw_header(draw)
 
-            for n, i in enumerate(range(CONTACT_PAGE_NUMBER * 3, min(CONTACT_PAGE_NUMBER * 3 + 3, len(contacts)))):
-                name = contacts[i]["nick_name"].strip()
-                print_name = name[:22] + "..." if len(name) > 22 else name
-
-                # Black Theme for Selected Contact
-                color = "black"
-                if i == CONTACT_INDEX:
-                    color = "white"
-                    draw.rectangle([1, 11 + 13 * n, 122, 9 + 13 * (n+1)], fill="black")
-                    
-                # Name    
-                draw.text((3, 10 + 12 * n), print_name, font=name_font, fill=color)
-
-            # ====== Draw Scroll Bar, TOP, Bott ======
-            draw.rectangle([124, 0, 124, 48], fill="black") # seperator line
-            page_ratio = 3 / len(contacts) * 48
-            draw.rectangle([125, CONTACT_PAGE_NUMBER * page_ratio, 127, (CONTACT_PAGE_NUMBER + 1) * page_ratio], fill="black")
-
-            # if CONTACT_PAGE_NUMBER == 0:
-            draw.rectangle([1, 0, 122, 9], fill="black")
-            draw.text((37, -2), "Contacts", font=name_font, fill="white")
-            # if CONTACT_INDEX // 3 == (len(contacts)-1) // 3:
-            #     draw.rectangle([1, 41, 123, 46], fill="black")
             fb.write(img)
 
     if STATUS == "contact_info":
@@ -101,29 +78,9 @@ while True:
 
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
-            draw.rectangle([0, 0, 127, 47], outline="black")
+            tools.draw_border(draw)
 
-            icon = Image.open("./img/person.png").convert("RGBA")
-            icon = icon.resize((14, 14), Image.LANCZOS)
-            img.paste(icon, (3,3), icon)
-
-            icon = Image.open("./img/tel.png").convert("RGBA")
-            icon = icon.resize((14, 14), Image.LANCZOS)
-            img.paste(icon, (3,17), icon)
-
-            name = contacts[CONTACT_INDEX]["nick_name"].strip()
-            print_name = name[:18] + "..." if len(name) > 18 else name
-
-            number = contacts[CONTACT_INDEX]["phone_number"].strip()
-            print_number = number[:20] + "..." if len(number) > 20 else number
-
-            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 12)
-            draw.text((18, 1), print_name, font=name_font, fill="black")
-
-            number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
-            draw.text((18, 19), print_number, font=number_font, fill="black")
-
-            tools.draw_buttons(draw, fb.width, fb.height, texts=("Back", "Call", "", ""))
+            tools.draw_contact_info(draw, img, contacts[CONTACT_INDEX], fb.width, fb.height)
 
             fb.write(img)
     
