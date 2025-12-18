@@ -90,7 +90,6 @@ class Tools:
 
     def draw_contact_rows(self, draw, contacts, CONTACT_INDEX, CONTACT_PAGE_NUMBER):
         name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
-        number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
 
         for n, i in enumerate(range(CONTACT_PAGE_NUMBER * 3, min(CONTACT_PAGE_NUMBER * 3 + 3, len(contacts)))):
             name = contacts[i]["nick_name"].strip()
@@ -100,15 +99,15 @@ class Tools:
             color = "black"
             if i == CONTACT_INDEX:
                 color = "white"
-                draw.rectangle([1, 11 + 13 * n, 122, 9 + 13 * (n+1)], fill="black")
+                draw.rectangle([1, 1 + 13 * n, 122, -1 + 13 * (n+1)], fill="black")
                 
             # Name    
-            draw.text((3, 10 + 12 * n), print_name, font=name_font, fill=color)
+            draw.text((3, 0 + 12 * n), print_name, font=name_font, fill=color)
 
     def draw_header(self, draw, header="Contacts"):
         name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
         draw.rectangle([1, 0, 122, 9], fill="black")
-        draw.text((37, -2), header, font=name_font, fill="white")
+        draw.text((57, 6), header, font=name_font, fill="white", anchor="mm")
 
     def draw_border(self, draw, width=1):
         draw.rectangle([0, 0, 127, 47], outline="black", width=width)
@@ -118,10 +117,19 @@ class Tools:
         page_ratio = 3 / len_contacts * 48
         draw.rectangle([125, CONTACT_PAGE_NUMBER * page_ratio, 127, (CONTACT_PAGE_NUMBER + 1) * page_ratio], fill="black")
 
-    def draw_icon(self, draw, img, icon_path, icon_size, icon_pos):
-        icon = Image.open(icon_path).convert("RGBA")
+    def draw_icon(self, draw, img, icon_path, icon_size, icon_pos, color='black', threshold=128):
+        # open icon (ignore alpha)
+        icon = Image.open(icon_path).convert("L")  # grayscale
         icon = icon.resize(icon_size, Image.LANCZOS)
-        img.paste(icon, icon_pos, icon)
+
+        # make binary mask using threshold
+        mask = icon.point(lambda p: 0 if p > threshold else 255)
+
+        # create solid color icon
+        colored_icon = Image.new("RGBA", icon.size, color)
+
+        # paste using threshold mask
+        img.paste(colored_icon, icon_pos, mask)
 
     def draw_contact_info(self, draw, img, contact, fb_width, fb_height):
         self.draw_icon(draw, img, "./img/person.png", (14, 14), (3,3))

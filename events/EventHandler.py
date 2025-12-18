@@ -42,8 +42,37 @@ class EventHandler:
             if pressed_button == 'Ok':
                 changes['STATUS'] = "contact_info"
                 return changes
+            if pressed_button == 'Hist':
+                changes['STATUS'] = "menu"
+                return changes
+
+        if STATUS == 'menu':
+            if pressed_button == 'Down':
+                changes['STATUS'] = STATUS
+                changes['MENU_ITEM_INDEX'] = +1
+                return changes
+            if pressed_button == 'Up':
+                changes['STATUS'] = STATUS
+                changes['MENU_ITEM_INDEX'] = -1
+                return changes
+            if pressed_button == 'Hist':
+                changes['STATUS'] = "main_page"
+                return changes
+            if pressed_button == 'Ok':
+                changes['STATUS'] = STATUS
+                changes['OK'] = True
+                return changes
 
         if STATUS == 'contact_info':
             if pressed_button == 'Hist':
                 changes['STATUS'] = "contacts"
                 return changes
+        
+        if STATUS == 'main_page':
+            if pressed_button == 'Menu':
+                changes['STATUS'] = "menu"
+                changes['INDEX_RESET'] = True
+                return changes
+
+
+        
