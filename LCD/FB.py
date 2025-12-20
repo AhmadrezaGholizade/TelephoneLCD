@@ -1,7 +1,7 @@
 from PIL import Image
 import numpy as np
 
-class FrameBuffer:
+class LCDFrameBuffer:
     def __init__(self, device="/dev/fb0", width=128, height=48):
         self.device = device
         self.width = width

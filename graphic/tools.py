@@ -1,9 +1,14 @@
 from PIL import Image, ImageDraw, ImageFont
-from LCD.FB import FrameBuffer
+from LCD.FB import LCDFrameBuffer
 from datetime import datetime
 import jdatetime
 
 class Tools:
+    hist_type_png = {
+        "missed": "./img/miss.png",
+        "incoming": "./img/in.png",
+        "outgoing": "./img/out.png"
+    }
     def render_main_page(self, draw, img, width, height):
         self.draw_clock(draw)
         self.draw_date(draw)
@@ -11,9 +16,8 @@ class Tools:
         self.draw_buttons(draw, width, height)
 
     def draw_clock(self, draw,
-               pos_hour=(15, 20),
-               pos_colon=(30, 27),
-               pos_min=(52, 20),
+               pos_hour=(17, 20),
+               pos_min=(54, 20),
                font_path="fonts/technology/Technology.ttf",
                font_size=40,
                color="black",
@@ -130,6 +134,11 @@ class Tools:
 
         # paste using threshold mask
         img.paste(colored_icon, icon_pos, mask)
+    
+    def draw_icon_2(self, draw, img, icon_path, icon_size, icon_pos): 
+        icon = Image.open(icon_path).convert("RGBA") 
+        icon = icon.resize(icon_size, Image.LANCZOS) 
+        img.paste(icon, icon_pos, icon)
 
     def draw_contact_info(self, draw, img, contact, fb_width, fb_height):
         self.draw_icon(draw, img, "./img/person.png", (14, 14), (3,3))
@@ -145,10 +154,50 @@ class Tools:
         draw.text((18, 1), print_name, font=name_font, fill="black")
 
         number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
-        draw.text((18, 19), print_number, font=number_font, fill="black")
+        draw.text((18, 19), print_number+f"({contact['user_type'].strip()})", font=number_font, fill="black")
 
         self.draw_buttons(draw, fb_width, fb_height, texts=("Back", "Call", "", ""))
 
+    def one_to_six_culs(self, draw, len_menu_items):
+        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
 
+        draw.rectangle([1, 1, 7, 35], fill="black")
+        draw.rectangle([63, 1, 70, 35], fill="black")
+        for i in range(len_menu_items):
+            x_pos = 64 if (i > 2) else 1
+            n = i % 3
+            draw.text((x_pos, 12 * n), f"{i+1}", font=name_font, fill="white")
 
+    def draw_manu_items(self, draw, img, menu_items, BOLD_ITEM_INDEX):
+        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
+
+        for i in range(len(menu_items)):
+            x_pos = 87 if (i > 2) else 24
+            n = i % 3
+
+            print_name = menu_items[i][1]["text"].strip()
+            color = "black"
+            if i == BOLD_ITEM_INDEX:
+                color = "white"
+                draw.rectangle([x_pos-16 , 12 * n, x_pos+38, 12 * (n+1)], fill="black")
+                                    
+            self.draw_icon(draw, img, menu_items[i][1]["icon_path"], (13, 13), (x_pos-15,n*12), color=color)
             
+            draw.text((x_pos, 12 * n), print_name, font=name_font, fill=color)
+
+    def draw_history_items(self, draw, img, history_calls, ITEM_INDEX, PAGE_NUMBER):
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
+        for n, i in enumerate(range(PAGE_NUMBER * 3, min(PAGE_NUMBER * 3 + 3, len(history_calls)))):
+            name = history_calls[i]["phone_number"].strip()
+            name = name[:15] + "..." if len(name) > 15 else name
+
+            # # Black Theme for Selected Contact
+            color = "black"
+            if i == ITEM_INDEX:
+                color = "white"
+                draw.rectangle([11, 1 + 13 * n, 122, -1 + 13 * (n+1)], fill="black")
+            
+            self.draw_icon_2(draw, img, self.hist_type_png[history_calls[i]["type"]], (13, 13), (0,n*12))
+            # Name    
+            draw.text((12, 0 + 12 * n), name, font=name_font, fill=color)
+
