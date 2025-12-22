@@ -34,7 +34,7 @@ state_lock = threading.Lock()
 PRESSED_BUTTON = None
 PHONE_STATUS = "DOWN"
 
-SOCKET_PATH = "/tmp/phone_monitor.sock"  # Path to the socket file
+SOCKET_PATH = "/run/phone_monitor.sock"  # Path to the socket file
 
 def monitor_device():
     global PRESSED_BUTTON, PHONE_STATUS

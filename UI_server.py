@@ -46,7 +46,7 @@ contacts = [
     {"nick_name": "Zahra", "phone_number": "0012025550198", "user_type": "SIP"},
     {"nick_name": "شکیبا", "phone_number": "888777666555", "user_type": "WRTC"},
     {"nick_name": "مهدی", "phone_number": "09011223344", "user_type": "SIP"},
-    {"nick_name": "Navid", "phone_number": "987654321012345", "user_type": "WRTC"},
+    {"nick_name": "Navid", "phone_number": "987654321045", "user_type": "WRTC"},
     {"nick_name": "Atena", "phone_number": "98765", "user_type": "WRTC"}
 ]
 
@@ -114,11 +114,16 @@ STATUS_CHANGED = True
 last_minute = datetime.now().minute
 last_second = datetime.now().second
 
+number_typing = ""
+
 
 while True:
-    time.sleep(0.13)
+    time.sleep(0.05)
     now = datetime.now()
     changes = event_handler.handle_key(STATUS)
+
+    event_handler.check_light_timeout(fb)
+
     if changes:
         STATUS_CHANGED = True
         STATUS = changes['STATUS']
@@ -127,6 +132,24 @@ while True:
             ITEM_INDEX = 0
         if changes.get("INDEX_SET", False):
             ITEM_INDEX = changes.get("INDEX_SET", False)
+
+    if STATUS=="type_number":
+        if changes:
+            if changes.get("FIRST_CHAR", False):
+                number_typing = changes.get("FIRST_CHAR", False)
+            if changes.get("ADD_CHAR", False):
+                number_typing += changes.get("ADD_CHAR", False)
+        if STATUS_CHANGED:
+            STATUS_CHANGED = False
+            img = Image.new("RGB", (fb.width, fb.height), color="white")
+            draw = ImageDraw.Draw(img)
+
+            number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 18)
+            draw.text((4, 8), number_typing, font=number_font, fill="black")
+
+            tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "Add", ""))
+            fb.write(img)
+
 
     if STATUS=="history":
         if changes and changes.get("HISTORY_INDEX", 0) != 0:
@@ -154,7 +177,7 @@ while True:
             tools.draw_history_items(draw, img, history_calls, ITEM_INDEX, PAGE_NUMBER)
 
             tools.draw_scrollbar(draw, PAGE_NUMBER, len(history_calls))
-            tools.draw_buttons(draw, 124, fb.height, height=9,font_size=10,texts=("Back", "", "", ""))
+            tools.draw_buttons(draw, 124, fb.height, height=9,font_size=10,texts=("Back", "Detail", "", ""))
 
             fb.write(img)
 
@@ -255,7 +278,7 @@ while True:
 
             draw = ImageDraw.Draw(img)
 
-            tools.draw_buttons(draw, 128, fb.height, height=9,font_size=10,texts=("Back", "", "", ""))
+            tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "", "", ""))
 
             tools.draw_icon(draw, img, "./img/tel.png", (11, 11), (2,1))
 

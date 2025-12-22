@@ -17,7 +17,7 @@ class Tools:
 
     def draw_clock(self, draw,
                pos_hour=(17, 20),
-               pos_min=(54, 20),
+               pos_min=(55, 20),
                font_path="fonts/technology/Technology.ttf",
                font_size=40,
                color="black",
@@ -154,7 +154,15 @@ class Tools:
         draw.text((18, 1), print_name, font=name_font, fill="black")
 
         number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
-        draw.text((18, 19), print_number+f"({contact['user_type'].strip()})", font=number_font, fill="black")
+        type_font   = ImageFont.truetype("fonts/Google_Sans_Flex/static/GoogleSansFlex_9pt-Regular.ttf", 9)
+
+        x, y = 18, 19
+        draw.text((x, y), print_number, font=number_font, fill="black")
+
+        w = draw.textlength(print_number, font=number_font)
+
+        draw.text((x + w, y + 1), f"({contact['user_type'].strip()})",
+                font=type_font, fill="black")
 
         self.draw_buttons(draw, fb_width, fb_height, texts=("Back", "Call", "", ""))
 

@@ -2,10 +2,32 @@ from PIL import Image
 import numpy as np
 
 class LCDFrameBuffer:
+    BACKLIGHT_PATH = "/sys/class/backlight/backlight/brightness"
+    
     def __init__(self, device="/dev/fb0", width=128, height=48):
         self.device = device
         self.width = width
         self.height = height
+
+    def screen_off(self):
+        """
+        Turn LCD backlight OFF
+        """
+        try:
+            with open(self.BACKLIGHT_PATH, "w") as f:
+                f.write("0")
+        except Exception as e:
+            print(f"Failed to turn screen off: {e}")
+
+    def screen_on(self):
+        """
+        Turn LCD backlight ON
+        """
+        try:
+            with open(self.BACKLIGHT_PATH, "w") as f:
+                f.write("1")
+        except Exception as e:
+            print(f"Failed to turn screen on: {e}")
     
     def image_to_frame(self, image):
         """

@@ -2,7 +2,7 @@ import socket
 import json
 import time
 
-SOCKET_PATH = "/tmp/phone_monitor.sock"
+SOCKET_PATH = "/run/phone_monitor.sock"
 
 def get_phone_state():
     try:

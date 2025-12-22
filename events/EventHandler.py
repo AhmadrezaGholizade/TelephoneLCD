@@ -6,7 +6,7 @@ from collections import deque
 
 class EventHandler:
 
-    SOCKET_PATH = "/tmp/phone_monitor.sock"
+    SOCKET_PATH = "/run/phone_monitor.sock"
 
     
 
@@ -14,6 +14,10 @@ class EventHandler:
         # queue of (button, timestamp)
         self.last_page_history = None
         self.button_queue = deque(maxlen=2)
+        self.last_action = time.monotonic()
+        self.screen_light_status = True
+        self.last_phone_status = None
+        self.phone_status_changed = False
     def _push(self, button, timestamp):
         self.button_queue.append((button, timestamp))
     def _all_same(self, button):
@@ -38,13 +42,35 @@ class EventHandler:
             print(f"Could not connect to monitor: {e}")
         return None
 
+    def check_light_timeout(self, fb, timeout = 10):
+        if (time.monotonic() - self.last_action) > timeout:
+            self.screen_light_status = False
+            fb.screen_off()
+        else: 
+            self.screen_light_status = True
+            fb.screen_on()    
+
     def handle_key(self, STATUS):
         state = self.get_phone_state()
-        pressed_button = state["pressed_button"]
-        if not pressed_button:
-            return None
+        
+        if state["phone_status"] != self.last_phone_status:
+            self.phone_status_changed = True
+        else:
+            self.phone_status_changed = False
 
+        self.last_phone_status = state["phone_status"]
+        
+        pressed_button = state["pressed_button"]
+        phone_status = state["phone_status"]
         now = time.monotonic()
+
+        if not pressed_button and not self.phone_status_changed:
+            return None
+        else:
+            self.last_action = now
+
+        
+        
         if len(self.button_queue) != 0:
             last_button, last_time = self.button_queue[-1]
             if now - last_time > 1:
@@ -56,7 +82,14 @@ class EventHandler:
                             return None
         self._push(pressed_button, now)
 
+        if not self.screen_light_status:
+            return None
+            
         changes = dict()
+
+        if self.phone_status_changed and phone_status == "UP":
+            changes['STATUS'] = "type_number"
+            return changes
 
         if STATUS == 'contacts':
             if pressed_button == 'Down':
@@ -116,6 +149,11 @@ class EventHandler:
                 self.last_page_history = 'main_page'
                 changes['INDEX_RESET'] = True
                 return changes
+            if pressed_button in set(['1', '2', '3', '4', '5', '6', '7', '8', '9','*', '0', '#']):
+                changes['STATUS'] = "type_number"
+                changes['FIRST_CHAR'] = pressed_button
+                return changes
+
 
         if STATUS == 'history':
             if pressed_button == 'Hist':
@@ -130,7 +168,7 @@ class EventHandler:
                 changes['STATUS'] = STATUS
                 changes['HISTORY_INDEX'] = -1
                 return changes
-            if pressed_button == 'Ok':
+            if pressed_button in set(['Ok', 'Redial']):
                 changes['STATUS'] = "history_info"
                 return changes
             
@@ -138,6 +176,19 @@ class EventHandler:
             if pressed_button == 'Hist':
                 changes['STATUS'] = 'history'
                 return changes
+
+        if STATUS == 'type_number':
+            if pressed_button == 'Hist':
+                changes['STATUS'] = 'main_page'
+                return changes
+            if pressed_button in set(['1', '2', '3', '4', '5', '6', '7', '8', '9','*', '0', '#']):
+                changes['STATUS'] = "type_number"
+                changes['ADD_CHAR'] = pressed_button
+                return changes
+            
+
+
+
 
 
 
