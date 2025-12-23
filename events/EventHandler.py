@@ -82,11 +82,10 @@ class EventHandler:
                             return None
         self._push(pressed_button, now)
 
-        if not self.screen_light_status:
+        if not self.screen_light_status and not self.phone_status_changed:
             return None
             
         changes = dict()
-
 
         # Phone Events
         if STATUS == 'type_number':
@@ -96,6 +95,7 @@ class EventHandler:
                 return changes
 
         if STATUS == 'ringing':
+            print("=================")
             if self.phone_status_changed and phone_status == "UP":
                 changes['STATUS'] = "incall"
                 changes['ANSWER'] = True

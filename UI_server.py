@@ -19,7 +19,8 @@ PAGE_NUMBER = 0
 last_state = None
 
 def handle_event(event):
-    print("EVENT RECEIVED:", event)
+    if event.get("action") != "ping" and event.get("event") != "pong":
+        print("EVENT RECEIVED:", event)
 
     if isinstance(event, dict):
 
