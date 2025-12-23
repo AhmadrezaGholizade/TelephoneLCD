@@ -87,6 +87,14 @@ class EventHandler:
             
         changes = dict()
 
+
+        # Phone Events
+        if STATUS == 'type_number':
+            if self.phone_status_changed and phone_status == "UP":
+                changes['STATUS'] = "calling"
+                changes['CALL'] = True
+                return changes
+
         if STATUS == 'ringing':
             if self.phone_status_changed and phone_status == "UP":
                 changes['STATUS'] = "incall"
@@ -109,6 +117,7 @@ class EventHandler:
             changes['STATUS'] = "main_page"
             return changes
 
+        # Key Events
         if STATUS == 'contacts':
             if pressed_button == 'Down':
                 changes['STATUS'] = STATUS
@@ -202,10 +211,6 @@ class EventHandler:
             if pressed_button in set(['1', '2', '3', '4', '5', '6', '7', '8', '9','*', '0', '#']):
                 changes['STATUS'] = "type_number"
                 changes['ADD_CHAR'] = pressed_button
-                return changes
-            if self.phone_status_changed and phone_status == "UP":
-                changes['STATUS'] = "calling"
-                changes['CALL'] = True
                 return changes
 
         if STATUS == 'ringing':
