@@ -6,10 +6,46 @@ from events.EventHandler import EventHandler
 import time
 from colon_pos import *
 import jdatetime
+from server_sock.CallEngineClient import CallEngineClient
+import json
 
+
+STATUS = "main_page"
+STATUS_CHANGED = True
 
 ITEM_INDEX = 0
 PAGE_NUMBER = 0
+
+last_state = None
+
+def handle_event(event):
+    print("EVENT RECEIVED:", event)
+
+    if isinstance(event, dict):
+
+        if event.get("event") == "state":
+            last_state = event
+            print(f"Last state Updated: {last_state}")
+
+            global STATUS_CHANGED, STATUS
+            if event["value"] == "IDLE":
+                STATUS_CHANGED = True
+                STATUS = 'main_page'
+                print("IDLE: Return to main page")
+            
+            if event["value"] == "RINGING":
+                STATUS_CHANGED = True
+                STATUS = 'ringing'
+                print("RINGING:  go to RINGING page")
+
+        if event.get("action") == "ping":
+            # print("PING RECIEVED")
+            ts = int(time.time() * 1000)
+            msg = {
+                "event": "pong",
+                "ts": ts
+            }
+            callEngineClient.send(json.dumps(msg))
 
 
 hist_type_text = {
@@ -107,19 +143,35 @@ history_calls = [
 fb = LCDFrameBuffer()
 tools = Tools()
 event_handler = EventHandler()
+callEngineClient = CallEngineClient()
 
-STATUS = "main_page"
-STATUS_CHANGED = True
+
+
 
 last_minute = datetime.now().minute
 last_second = datetime.now().second
 
 number_typing = ""
 
+callEngineClient.connect()
+callEngineClient.start(handle_event)
+
+last_ping = time.monotonic()
 
 while True:
     time.sleep(0.05)
     now = datetime.now()
+
+    if (time.monotonic() - last_ping) > 5:
+        last_ping = time.monotonic()
+        ts = int(time.time() * 1000)  # milliseconds
+        msg = {
+            "action": "ping",
+            "ts": ts
+        }
+
+        callEngineClient.send(json.dumps(msg))
+
     changes = event_handler.handle_key(STATUS)
 
     event_handler.check_light_timeout(fb)
@@ -133,19 +185,83 @@ while True:
         if changes.get("INDEX_SET", False):
             ITEM_INDEX = changes.get("INDEX_SET", False)
 
+    # print(STATUS, STATUS_CHANGED)
+
+    if STATUS=="ringing":
+        if changes and changes.get("REJECT", False):
+            msg = {
+                "action": "reject"
+            }
+            callEngineClient.send(json.dumps(msg))
+
+
+        if STATUS_CHANGED:
+            STATUS_CHANGED = False
+            img = Image.new("RGB", (fb.width, fb.height), color="white")
+            draw = ImageDraw.Draw(img)
+            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
+            draw.text((18, 1), "RINGING...", font=name_font, fill="black")
+            fb.write(img)
+
+
+    if STATUS=="calling":
+        if number_typing and changes and changes.get("CALL", False):
+            msg = {
+                "action": "call",
+                "number": number_typing
+            }
+            callEngineClient.send(json.dumps(msg))
+        
+        if STATUS_CHANGED:
+            STATUS_CHANGED = False
+            img = Image.new("RGB", (fb.width, fb.height), color="white")
+            draw = ImageDraw.Draw(img)
+            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
+            draw.text((18, 1), "CALLING...", font=name_font, fill="black")
+            fb.write(img)
+    
+    if STATUS=="incall":
+        if changes and changes.get("ANSWER", False):
+            msg = {
+                "action": "answer"
+            }
+            callEngineClient.send(json.dumps(msg))
+        if changes and changes.get("HANGUP", False):
+            msg = {
+                "action": "hangup"
+            }
+            callEngineClient.send(json.dumps(msg))
+        
+        if STATUS_CHANGED:
+            STATUS_CHANGED = False
+            img = Image.new("RGB", (fb.width, fb.height), color="white")
+            draw = ImageDraw.Draw(img)
+            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
+            draw.text((18, 1), "INCALL...", font=name_font, fill="black")
+            fb.write(img)
+
+
     if STATUS=="type_number":
         if changes:
-            if changes.get("FIRST_CHAR", False):
+            if changes.get("FIRST_CHAR", False) != False:
                 number_typing = changes.get("FIRST_CHAR", False)
             if changes.get("ADD_CHAR", False):
                 number_typing += changes.get("ADD_CHAR", False)
+            
+
+
         if STATUS_CHANGED:
             STATUS_CHANGED = False
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
 
-            number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 18)
-            draw.text((4, 8), number_typing, font=number_font, fill="black")
+            if not number_typing:
+                number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 18)
+                draw.text((4, 8), "Type Number...", font=number_font, fill="black")
+
+            else:
+                number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 18)
+                draw.text((4, 8), number_typing, font=number_font, fill="black")
 
             tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "Add", ""))
             fb.write(img)

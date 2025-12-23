@@ -6,7 +6,7 @@ from collections import deque
 
 class EventHandler:
 
-    SOCKET_PATH = "/run/phone_monitor.sock"
+    KEY_SOCKET_PATH = "/run/phone_monitor.sock"
 
     
 
@@ -32,7 +32,7 @@ class EventHandler:
     def get_phone_state(self):
         try:
             client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            client.connect(self.SOCKET_PATH)
+            client.connect(self.KEY_SOCKET_PATH)
             client.sendall(b"GET_STATUS")
             data = client.recv(1024)
             client.close()
@@ -73,7 +73,7 @@ class EventHandler:
         
         if len(self.button_queue) != 0:
             last_button, last_time = self.button_queue[-1]
-            if now - last_time > 1:
+            if now - last_time > 0.6:
                 self.button_queue = deque(maxlen=2)
             else:
                 if pressed_button == last_button:
@@ -87,8 +87,26 @@ class EventHandler:
             
         changes = dict()
 
-        if self.phone_status_changed and phone_status == "UP":
+        if STATUS == 'ringing':
+            if self.phone_status_changed and phone_status == "UP":
+                changes['STATUS'] = "incall"
+                changes['ANSWER'] = True
+                return changes
+
+        if STATUS == 'incall':
+            if self.phone_status_changed and phone_status == "DOWN":
+                changes['STATUS'] = STATUS
+                changes['HANGUP'] = True
+                return changes
+        
+
+        if STATUS != "type_number" and self.phone_status_changed and phone_status == "UP":
             changes['STATUS'] = "type_number"
+            if STATUS != 'type_number':
+                changes['FIRST_CHAR'] = ""
+            return changes
+        if STATUS != 'incall' and self.phone_status_changed and phone_status == "DOWN":
+            changes['STATUS'] = "main_page"
             return changes
 
         if STATUS == 'contacts':
@@ -184,6 +202,16 @@ class EventHandler:
             if pressed_button in set(['1', '2', '3', '4', '5', '6', '7', '8', '9','*', '0', '#']):
                 changes['STATUS'] = "type_number"
                 changes['ADD_CHAR'] = pressed_button
+                return changes
+            if self.phone_status_changed and phone_status == "UP":
+                changes['STATUS'] = "calling"
+                changes['CALL'] = True
+                return changes
+
+        if STATUS == 'ringing':
+            if pressed_button == 'Hist':
+                changes['STATUS'] = STATUS
+                changes['REJECT'] = True
                 return changes
             
 
