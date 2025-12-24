@@ -14,7 +14,7 @@ class CallEngineClient:
         self.fb = fb
         self.tools = tools
         self.reconnect_delay = 1  # Start with 1 second
-        self.max_reconnect_delay = 30  # Max 30 seconds between attempts
+        self.max_reconnect_delay = 5  # Max 30 seconds between attempts
         self.on_event_callback = None
         self.connected = False
 
@@ -73,7 +73,7 @@ class CallEngineClient:
                 time.sleep(retry_delay)
                 
                 # Exponential backoff
-                retry_delay = min(retry_delay * 2, self.max_reconnect_delay)
+                retry_delay = min(int(retry_delay * 1.2), self.max_reconnect_delay)
 
     # ---------- send with retry ----------
     def send(self, data):
