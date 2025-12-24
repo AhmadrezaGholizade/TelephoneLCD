@@ -26,7 +26,7 @@ def handle_event(event):
 
         if event.get("event") == "state":
             last_state = event
-            print(f"Last state Updated: {last_state}")
+            print(f"Last state Updated")
 
             global STATUS_CHANGED, STATUS
             if event["value"] == "IDLE":
