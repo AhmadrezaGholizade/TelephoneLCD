@@ -18,18 +18,17 @@ class Tools:
     def draw_ringing_page(self, draw, img, number, fb_width, fb_height):
         self.draw_icon_2(draw, img, "./img/in.png", (13, 13), (1,1))
         name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
-        draw.text((15, 1), "INCOMING CALL...", font=name_font, fill="black")
+        draw.text((15, 3), "INCOMING CALL...", font=name_font, fill="black")
         name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 12)
-        draw.text((15, 16), number, font=name_font, fill="black")
+        draw.text((15, 18), number, font=name_font, fill="black")
         self.draw_buttons(draw, fb_width, fb_height, texts=("Answ.", "Reject", "", ""))
     
-    def draw_initialization(self, draw):
-        self.draw_icon_2(draw, img, "./img/in.png", (13, 13), (1,1))
-        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
-        draw.text((15, 1), "INCOMING CALL...", font=name_font, fill="black")
-        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 12)
-        draw.text((15, 16), number, font=name_font, fill="black")
-        self.draw_buttons(draw, fb_width, fb_height, texts=("Answ.", "Reject", "", ""))
+    def draw_initialization(self,fb):
+        img = Image.new("RGB", (fb.width, fb.height), color="black")
+        draw = ImageDraw.Draw(img)
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 15)
+        draw.text((8, 10), "CONNECTING...", font=name_font, fill="white")
+        fb.write(img)
     
 
     def draw_clock(self, draw,
