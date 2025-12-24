@@ -15,10 +15,22 @@ class Tools:
         self.draw_id(draw, img)
         self.draw_buttons(draw, width, height)
 
-    def draw_ringing_page(self, draw, number):
-        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
-        draw.text((18, 1), "RINGING...", font=name_font, fill="black")
-            
+    def draw_ringing_page(self, draw, img, number, fb_width, fb_height):
+        self.draw_icon_2(draw, img, "./img/in.png", (13, 13), (1,1))
+        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
+        draw.text((15, 1), "INCOMING CALL...", font=name_font, fill="black")
+        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 12)
+        draw.text((15, 16), number, font=name_font, fill="black")
+        self.draw_buttons(draw, fb_width, fb_height, texts=("Answ.", "Reject", "", ""))
+    
+    def draw_initialization(self, draw):
+        self.draw_icon_2(draw, img, "./img/in.png", (13, 13), (1,1))
+        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
+        draw.text((15, 1), "INCOMING CALL...", font=name_font, fill="black")
+        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 12)
+        draw.text((15, 16), number, font=name_font, fill="black")
+        self.draw_buttons(draw, fb_width, fb_height, texts=("Answ.", "Reject", "", ""))
+    
 
     def draw_clock(self, draw,
                pos_hour=(17, 20),

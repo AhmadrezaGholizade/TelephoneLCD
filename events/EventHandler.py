@@ -61,7 +61,7 @@ class EventHandler:
         }
     def _hangUp(self):
         return {
-            'STATUS': "incall",
+            'STATUS': "main_page",
             'HANGUP': True
         }
 
@@ -118,6 +118,10 @@ class EventHandler:
                 return self._answer()
 
         if STATUS == 'incall':
+            if self.phone_status_changed and phone_status == "DOWN":
+                return self._hangUp()
+
+        if STATUS == 'calling':
             if self.phone_status_changed and phone_status == "DOWN":
                 return self._hangUp()
         

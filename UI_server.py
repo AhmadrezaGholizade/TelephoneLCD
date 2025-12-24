@@ -10,6 +10,58 @@ from server_sock.CallEngineClient import CallEngineClient
 import json
 from call_manager.call_handler import Call_handler
 
+def handle_event(event):
+    global last_event
+    last_event = event
+    if event.get("action") != "ping" and event.get("event") != "pong":
+        print("EVENT RECEIVED:", event)
+
+    if isinstance(event, dict):
+        if event.get("event") == "state":
+            global STATUS_CHANGED, STATUS
+            if event["value"] == "IDLE":
+                STATUS_CHANGED = True
+                STATUS = 'main_page'
+                print("IDLE: Return to main page")
+                return
+            
+            if event["value"] == "RINGING":
+                STATUS_CHANGED = True
+                STATUS = 'ringing'
+                print("RINGING:  go to RINGING page")
+                return
+            
+            if event["value"] == "INCALL":
+                STATUS_CHANGED = True
+                STATUS = 'incall'
+                print("CALL STARTED:  go to INCALL page")
+                return
+
+        if event.get("action") == "ping":
+            ts = int(time.time() * 1000)
+            msg = {
+                "event": "pong",
+                "ts": ts
+            }
+            callEngineClient.send(json.dumps(msg))
+            return
+
+# Manage LCD
+fb = LCDFrameBuffer()
+
+# Helps in Drawing
+tools = Tools()
+
+# Handle Key and Phone Events
+event_handler = EventHandler()
+
+# Connects to Call Back-end Service
+callEngineClient = CallEngineClient()
+callEngineClient.connect()
+callEngineClient.start(handle_event)
+
+# Handle messege sending to Back-end Service
+callHandler = Call_handler(callEngineClient)
 
 STATUS = "main_page"
 STATUS_CHANGED = True
@@ -17,37 +69,9 @@ STATUS_CHANGED = True
 ITEM_INDEX = 0
 PAGE_NUMBER = 0
 
-def handle_event(event):
-    if event.get("action") != "ping" and event.get("event") != "pong":
-        print("EVENT RECEIVED:", event)
+last_event = None
 
-    if isinstance(event, dict):
 
-        if event.get("event") == "state":
-            global STATUS_CHANGED, STATUS
-            if event["value"] == "IDLE":
-                STATUS_CHANGED = True
-                STATUS = 'main_page'
-                print("IDLE: Return to main page")
-            
-            if event["value"] == "RINGING":
-                STATUS_CHANGED = True
-                STATUS = 'ringing'
-                print("RINGING:  go to RINGING page")
-            
-            if event["value"] == "INCALL":
-                STATUS_CHANGED = True
-                STATUS = 'incall'
-                print("CALL STARTED:  go to INCALL page")
-
-        if event.get("action") == "ping":
-            # print("PING RECIEVED")
-            ts = int(time.time() * 1000)
-            msg = {
-                "event": "pong",
-                "ts": ts
-            }
-            callEngineClient.send(json.dumps(msg))
 
 
 hist_type_text = {
@@ -137,22 +161,6 @@ history_calls = [
     }
 ]
 
-# Manage LCD
-fb = LCDFrameBuffer()
-
-# Helps in Drawing
-tools = Tools()
-
-# Handle Key and Phone Events
-event_handler = EventHandler()
-
-# Connects to Call Back-end Service
-callEngineClient = CallEngineClient()
-callEngineClient.connect()
-callEngineClient.start(handle_event)
-
-# Handle messege sending to Back-end Service
-callHandler = Call_handler(callEngineClient)
 
 # to Handle clock change
 last_minute = datetime.now().minute
@@ -202,7 +210,7 @@ while True:
 
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
-            tools.draw_ringing_page(draw, number_typing)
+            tools.draw_ringing_page(draw, img, last_event['from']['phoneNumber'], fb.width, fb.height)
             fb.write(img)
 
     # Calling Page
