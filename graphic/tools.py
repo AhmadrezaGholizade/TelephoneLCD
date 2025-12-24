@@ -15,13 +15,21 @@ class Tools:
         self.draw_id(draw, img)
         self.draw_buttons(draw, width, height)
 
-    def draw_ringing_page(self, draw, img, number, fb_width, fb_height):
+    def draw_call_page(self, fb, number, type_):
+        img = Image.new("RGB", (fb.width, fb.height), color="white")
+        draw = ImageDraw.Draw(img)
         self.draw_icon_2(draw, img, "./img/in.png", (13, 13), (1,1))
         name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
-        draw.text((15, 3), "INCOMING CALL...", font=name_font, fill="black")
+        type_dict = {
+            "incall": "IN CALL",
+            "ringing": "INCOMING CALL...",
+            "calling": "OUTGOING CALL...",
+        }
+        draw.text((15, 3), type_dict[type_], font=name_font, fill="black")
         name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 12)
         draw.text((15, 18), number, font=name_font, fill="black")
-        self.draw_buttons(draw, fb_width, fb_height, texts=("Answ.", "Reject", "", ""))
+        self.draw_buttons(draw, fb.width, fb.height, texts=("Answ.", "Reject", "", ""))
+        fb.write(img)
     
     def draw_initialization(self,fb):
         img = Image.new("RGB", (fb.width, fb.height), color="black")

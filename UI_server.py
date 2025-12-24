@@ -14,9 +14,9 @@ from hardcoded_data import *
 last_event = None
 def handle_event(event):
     global last_event
-    last_event = event
     if event.get("action") != "ping" and event.get("event") != "pong":
         print("EVENT RECEIVED:", event)
+        last_event = event
 
     if isinstance(event, dict):
         if event.get("event") == "state":
@@ -37,6 +37,12 @@ def handle_event(event):
                 STATUS_CHANGED = True
                 STATUS = 'incall'
                 print("CALL STARTED:  go to INCALL page")
+                return
+
+            if event["value"] == "CALLING":
+                STATUS_CHANGED = True
+                STATUS = 'calling'
+                print("CALLING:  go to CALLING page")
                 return
 
         if event.get("action") == "ping":
@@ -73,8 +79,6 @@ STATUS_CHANGED = True
 ITEM_INDEX = 0
 PAGE_NUMBER = 0
 
-
-
 # to Handle clock change
 last_minute = datetime.now().minute
 last_second = datetime.now().second
@@ -104,8 +108,9 @@ while True:
 
     # Reset PAGE if changes is not None
     if changes:
-        STATUS_CHANGED = True
-        STATUS = changes['STATUS']
+        if changes.get('STATUS', False):
+            STATUS_CHANGED = True
+            STATUS = changes['STATUS']
 
         # Reset index
         if changes.get("INDEX_RESET", False):
@@ -118,13 +123,16 @@ while True:
 
     # Ringing Page
     if STATUS=="ringing":
-        if STATUS_CHANGED:
-            STATUS_CHANGED = False
 
-            img = Image.new("RGB", (fb.width, fb.height), color="white")
-            draw = ImageDraw.Draw(img)
-            tools.draw_ringing_page(draw, img, last_event['from']['phoneNumber'], fb.width, fb.height)
-            fb.write(img)
+        if STATUS_CHANGED:
+            target_number = ""
+            if 'from' in last_event.keys():
+                target_number = last_event['from']['phoneNumber']
+            if 'to' in last_event.keys():
+                target_number = last_event['to']['phoneNumber']
+            STATUS_CHANGED = False
+            tools.draw_call_page(fb, target_number, STATUS)
+            
 
     # Calling Page
     if STATUS=="calling":
@@ -134,21 +142,28 @@ while True:
             continue
         
         if STATUS_CHANGED:
+            target_number = ""
+            print(last_event.keys())
+            print(last_event)
+            if 'from' in last_event.keys():
+                target_number = last_event['from']['phoneNumber']
+            if 'to' in last_event.keys():
+                target_number = last_event['to']['phoneNumber']
             STATUS_CHANGED = False
-            img = Image.new("RGB", (fb.width, fb.height), color="white")
-            draw = ImageDraw.Draw(img)
-            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
-            draw.text((18, 1), "CALLING...", font=name_font, fill="black")
-            fb.write(img)
+            tools.draw_call_page(fb, target_number, STATUS)
+
     
     if STATUS=="incall":
+
         if STATUS_CHANGED:
+            target_number = ""
+            if 'from' in last_event.keys():
+                target_number = last_event['from']['phoneNumber']
+            if 'to' in last_event.keys():
+                target_number = last_event['to']['phoneNumber']
             STATUS_CHANGED = False
-            img = Image.new("RGB", (fb.width, fb.height), color="white")
-            draw = ImageDraw.Draw(img)
-            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
-            draw.text((18, 1), "INCALL...", font=name_font, fill="black")
-            fb.write(img)
+            tools.draw_call_page(fb, target_number, STATUS)
+
 
 
     if STATUS=="type_number":

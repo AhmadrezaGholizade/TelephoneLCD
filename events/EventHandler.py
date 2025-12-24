@@ -51,17 +51,14 @@ class EventHandler:
 
     def _call(self):
         return {
-            'STATUS': "calling",
             'CALL': True
         }
     def _answer(self):
         return {
-            'STATUS': "incall",
             'ANSWER': True
         }
     def _hangUp(self):
         return {
-            'STATUS': "main_page",
             'HANGUP': True
         }
 
