@@ -89,7 +89,7 @@ class EventHandler:
         # Handle repitition of keys
         if len(self.button_queue) != 0:
             last_button, last_time = self.button_queue[-1]
-            if now - last_time > 0.6:
+            if now - last_time > 1:
                 self.button_queue = deque(maxlen=2)
             else:
                 if pressed_button == last_button:
@@ -142,12 +142,16 @@ class EventHandler:
                 changes['STATUS'] = STATUS
                 changes['CONTACT_INDEX'] = -1
                 return changes
-            if pressed_button == 'Ok':
+            if pressed_button in set(['Ok', 'Redial']):
                 changes['STATUS'] = "contact_info"
                 return changes
             if pressed_button == 'Hist':
                 changes['STATUS'] = "menu"
                 changes['INDEX_RESET'] = True
+                return changes
+            if pressed_button == 'DND':
+                changes['STATUS'] = "type_number"
+                changes['CALL_ITEM'] = True
                 return changes
 
         if STATUS == 'menu':
@@ -179,6 +183,10 @@ class EventHandler:
         if STATUS == 'contact_info':
             if pressed_button == 'Hist':
                 changes['STATUS'] = "contacts"
+                return changes
+            if pressed_button == 'Redial':
+                changes['STATUS'] = "type_number"
+                changes['CALL_ITEM'] = True
                 return changes
         
         if STATUS == 'main_page':

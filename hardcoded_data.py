@@ -30,9 +30,21 @@ contacts = [
     {"nick_name": "شکیبا", "phone_number": "888777666555", "user_type": "WRTC"},
     {"nick_name": "مهدی", "phone_number": "09011223344", "user_type": "SIP"},
     {"nick_name": "Navid", "phone_number": "987654321045", "user_type": "WRTC"},
-    {"nick_name": "Atena", "phone_number": "98765", "user_type": "WRTC"}
+    {"nick_name": "Atena", "phone_number": "98765", "user_type": "WRTC"},
+    {"nick_name": "reza", "phone_number": "71001", "user_type": "WRTC"},
+    {"nick_name": "ali", "phone_number": "71002", "user_type": "WRTC"},
 ]
 history_calls = [
+    {
+        "phone_number": "71002",
+        "type": "incoming",
+        "timestamp": 1734699220  # 2024-12-19 09:50:00
+    },
+    {
+        "phone_number": "71001",
+        "type": "incoming",
+        "timestamp": 1734599220  # 2024-12-19 09:50:00
+    },
     {
         "phone_number": "09123456789",
         "type": "incoming",

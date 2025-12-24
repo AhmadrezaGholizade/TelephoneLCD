@@ -172,6 +172,8 @@ while True:
                 number_typing = changes.get("FIRST_CHAR", False)
             if changes.get("ADD_CHAR", False):
                 number_typing += changes.get("ADD_CHAR", False)
+            if changes.get("CALL_ITEM", False):
+                number_typing = contacts[ITEM_INDEX]['phone_number']
             
         if STATUS_CHANGED:
             STATUS_CHANGED = False
@@ -277,7 +279,7 @@ while True:
             tools.draw_contact_rows(draw, contacts, ITEM_INDEX, PAGE_NUMBER)
             tools.draw_scrollbar(draw, PAGE_NUMBER, len(contacts))
             # tools.draw_header(draw)
-            tools.draw_buttons(draw, 124, fb.height, height=9, font_size=10,texts=("Back", "", "", ""))
+            tools.draw_buttons(draw, 124, fb.height, height=9, font_size=10,texts=("Back", "Detail", "Call", ""))
 
             fb.write(img)
 
@@ -318,7 +320,7 @@ while True:
 
             draw = ImageDraw.Draw(img)
 
-            tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "", "", ""))
+            tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "", ""))
 
             tools.draw_icon(draw, img, "./img/tel.png", (11, 11), (2,1))
 
