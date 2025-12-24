@@ -38,6 +38,11 @@ def handle_event(event):
                 STATUS_CHANGED = True
                 STATUS = 'ringing'
                 print("RINGING:  go to RINGING page")
+            
+            if event["value"] == "INCALL":
+                STATUS_CHANGED = True
+                STATUS = 'incall'
+                print("CALL STARTED:  go to INCALL page")
 
         if event.get("action") == "ping":
             # print("PING RECIEVED")

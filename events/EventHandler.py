@@ -95,7 +95,6 @@ class EventHandler:
                 return changes
 
         if STATUS == 'ringing':
-            print("=================")
             if self.phone_status_changed and phone_status == "UP":
                 changes['STATUS'] = "incall"
                 changes['ANSWER'] = True
