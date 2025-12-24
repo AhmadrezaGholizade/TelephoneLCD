@@ -107,12 +107,12 @@ class EventHandler:
                 return changes
         
 
-        if STATUS != "type_number" and self.phone_status_changed and phone_status == "UP":
+        if self.phone_status_changed and phone_status == "UP":
             changes['STATUS'] = "type_number"
             if STATUS != 'type_number':
                 changes['FIRST_CHAR'] = ""
             return changes
-        if STATUS != 'incall' and self.phone_status_changed and phone_status == "DOWN":
+        if self.phone_status_changed and phone_status == "DOWN":
             changes['STATUS'] = "main_page"
             return changes
 

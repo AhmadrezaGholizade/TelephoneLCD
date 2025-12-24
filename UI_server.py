@@ -212,6 +212,10 @@ while True:
 
     if STATUS=="calling":
         if number_typing and changes and changes.get("CALL", False):
+            if not number_typing:
+                STATUS_CHANGED = False
+                STATUS = 'main_page'
+                continue
             msg = {
                 "action": "call",
                 "number": number_typing
