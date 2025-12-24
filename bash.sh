@@ -20,10 +20,10 @@ echo 'eval "$(pyenv init -)"' >> ~/.bashrc
 
 source ~/.bashrc
 
-# Requirements
-# jalali_core 1.0.0
-# jdatetime   5.2.0
-# numpy       2.2.6
-# pillow      12.0.0
-# pip         23.0.1
-# setuptools  65.5.0
+pip install -r requirements.txt
+
+sudo cp ./tests/test_events/servicefile.ini /etc/systemd/system/phone-monitor.service
+systemctl daemon-reload
+systemctl enable phone_monitor.service
+systemctl start phone_monitor.service
+
