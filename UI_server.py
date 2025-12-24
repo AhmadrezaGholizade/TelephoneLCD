@@ -8,6 +8,7 @@ from colon_pos import *
 import jdatetime
 from server_sock.CallEngineClient import CallEngineClient
 import json
+from call_manager.call_handler import Call_handler
 
 
 STATUS = "main_page"
@@ -16,8 +17,6 @@ STATUS_CHANGED = True
 ITEM_INDEX = 0
 PAGE_NUMBER = 0
 
-last_state = None
-
 def handle_event(event):
     if event.get("action") != "ping" and event.get("event") != "pong":
         print("EVENT RECEIVED:", event)
@@ -25,9 +24,6 @@ def handle_event(event):
     if isinstance(event, dict):
 
         if event.get("event") == "state":
-            last_state = event
-            print(f"Last state Updated")
-
             global STATUS_CHANGED, STATUS
             if event["value"] == "IDLE":
                 STATUS_CHANGED = True
@@ -59,13 +55,11 @@ hist_type_text = {
     "incoming": "Incoming Call",
     "outgoing": "Outgoing Call"
 }
-
 hist_type_png = {
     "missed": "./img/miss.png",
     "incoming": "./img/in.png",
     "outgoing": "./img/out.png"
 }
-
 menu_items = [
     ("contacts", {"text": "Contacts", "icon_path": "img/person.png"}),
     ("history", {"text": "History", "icon_path": "img/hist.png"}),
@@ -73,7 +67,6 @@ menu_items = [
     ("messeges", {"text": "Messege", "icon_path": "img/messege.png"}),
     ("DND", {"text": "DND", "icon_path": "img/DND.png"}),
 ]
-
 contacts = [
     {"nick_name": "Ali Rahmatlahi", "phone_number": "09123456789", "user_type": "SIP"},
     {"nick_name": "حسین هزار دستان کلکچالی", "phone_number": "09123456789", "user_type": "SIP"},
@@ -91,8 +84,6 @@ contacts = [
     {"nick_name": "Navid", "phone_number": "987654321045", "user_type": "WRTC"},
     {"nick_name": "Atena", "phone_number": "98765", "user_type": "WRTC"}
 ]
-
-
 history_calls = [
     {
         "phone_number": "09123456789",
@@ -146,81 +137,80 @@ history_calls = [
     }
 ]
 
+# Manage LCD
 fb = LCDFrameBuffer()
+
+# Helps in Drawing
 tools = Tools()
+
+# Handle Key and Phone Events
 event_handler = EventHandler()
+
+# Connects to Call Back-end Service
 callEngineClient = CallEngineClient()
-
-
-
-
-last_minute = datetime.now().minute
-last_second = datetime.now().second
-
-number_typing = ""
-
 callEngineClient.connect()
 callEngineClient.start(handle_event)
 
+# Handle messege sending to Back-end Service
+callHandler = Call_handler(callEngineClient)
+
+# to Handle clock change
+last_minute = datetime.now().minute
+last_second = datetime.now().second
+
+# Number Printing in typing number page
+number_typing = ""
+
+# Check the process of Ping Pong
 last_ping = time.monotonic()
 
 while True:
     time.sleep(0.05)
-    now = datetime.now()
-
+    
+    # Send ping 
     if (time.monotonic() - last_ping) > 5:
         last_ping = time.monotonic()
-        ts = int(time.time() * 1000)  # milliseconds
-        msg = {
-            "action": "ping",
-            "ts": ts
-        }
+        callHandler.send_ping()
 
-        callEngineClient.send(json.dumps(msg))
-
+    # Get key changes
     changes = event_handler.handle_key(STATUS)
 
+    # Handle Call orders from changes
+    callHandler.main_handler(changes, number_typing)
+
+    # Chack Screen light timeout
     event_handler.check_light_timeout(fb)
 
+    # Reset PAGE if changes is not None
     if changes:
         STATUS_CHANGED = True
         STATUS = changes['STATUS']
+
+        # Reset index
         if changes.get("INDEX_RESET", False):
             PAGE_NUMBER = 0
             ITEM_INDEX = 0
+
+        # Set Index
         if changes.get("INDEX_SET", False):
             ITEM_INDEX = changes.get("INDEX_SET", False)
 
-    # print(STATUS, STATUS_CHANGED)
-
+    # Ringing Page
     if STATUS=="ringing":
-        if changes and changes.get("REJECT", False):
-            msg = {
-                "action": "reject"
-            }
-            callEngineClient.send(json.dumps(msg))
-
-
         if STATUS_CHANGED:
             STATUS_CHANGED = False
+
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
-            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
-            draw.text((18, 1), "RINGING...", font=name_font, fill="black")
+            tools.draw_ringing_page(draw, number_typing)
             fb.write(img)
 
-
+    # Calling Page
     if STATUS=="calling":
-        if number_typing and changes and changes.get("CALL", False):
-            if not number_typing:
-                STATUS_CHANGED = False
-                STATUS = 'main_page'
-                continue
-            msg = {
-                "action": "call",
-                "number": number_typing
-            }
-            callEngineClient.send(json.dumps(msg))
+        if not number_typing:
+            STATUS_CHANGED = True
+            STATUS = 'main_page'
+            continue
         
         if STATUS_CHANGED:
             STATUS_CHANGED = False
@@ -231,17 +221,6 @@ while True:
             fb.write(img)
     
     if STATUS=="incall":
-        if changes and changes.get("ANSWER", False):
-            msg = {
-                "action": "answer"
-            }
-            callEngineClient.send(json.dumps(msg))
-        if changes and changes.get("HANGUP", False):
-            msg = {
-                "action": "hangup"
-            }
-            callEngineClient.send(json.dumps(msg))
-        
         if STATUS_CHANGED:
             STATUS_CHANGED = False
             img = Image.new("RGB", (fb.width, fb.height), color="white")
@@ -258,8 +237,6 @@ while True:
             if changes.get("ADD_CHAR", False):
                 number_typing += changes.get("ADD_CHAR", False)
             
-
-
         if STATUS_CHANGED:
             STATUS_CHANGED = False
             img = Image.new("RGB", (fb.width, fb.height), color="white")
@@ -381,6 +358,7 @@ while True:
             fb.write(img)
     
     elif STATUS == "main_page":
+        now = datetime.now()
         # Full redraw when minute changes
         if (now.minute != last_minute) or STATUS_CHANGED:
             if STATUS_CHANGED:

@@ -5,21 +5,20 @@ from collections import deque
 
 
 class EventHandler:
-
     KEY_SOCKET_PATH = "/run/phone_monitor.sock"
-
-    
 
     def __init__(self):
         # queue of (button, timestamp)
         self.last_page_history = None
         self.button_queue = deque(maxlen=2)
-        self.last_action = time.monotonic()
+        self.last_action_time = time.monotonic()
         self.screen_light_status = True
         self.last_phone_status = None
         self.phone_status_changed = False
+
     def _push(self, button, timestamp):
         self.button_queue.append((button, timestamp))
+
     def _all_same(self, button):
         if len(list(self.button_queue))<2:
             return False
@@ -42,35 +41,55 @@ class EventHandler:
             print(f"Could not connect to monitor: {e}")
         return None
 
-    def check_light_timeout(self, fb, timeout = 10):
-        if (time.monotonic() - self.last_action) > timeout:
+    def check_light_timeout(self, fb, timeout = 10000):
+        if (time.monotonic() - self.last_action_time) > timeout:
             self.screen_light_status = False
             fb.screen_off()
         else: 
             self.screen_light_status = True
             fb.screen_on()    
 
+    def _call(self):
+        return {
+            'STATUS': "calling",
+            'CALL': True
+        }
+    def _answer(self):
+        return {
+            'STATUS': "incall",
+            'ANSWER': True
+        }
+    def _hangUp(self):
+        return {
+            'STATUS': "incall",
+            'HANGUP': True
+        }
+
     def handle_key(self, STATUS):
         state = self.get_phone_state()
         
+        # Check for picking UP or DOWN the phone
         if state["phone_status"] != self.last_phone_status:
             self.phone_status_changed = True
         else:
             self.phone_status_changed = False
-
         self.last_phone_status = state["phone_status"]
         
+        # Get phone and button value
         pressed_button = state["pressed_button"]
         phone_status = state["phone_status"]
+
+        # NOW
         now = time.monotonic()
 
+        # If nothing's changed return None
         if not pressed_button and not self.phone_status_changed:
             return None
         else:
-            self.last_action = now
+            # Update last action tine
+            self.last_action_time = now
 
-        
-        
+        # Handle repitition of keys
         if len(self.button_queue) != 0:
             last_button, last_time = self.button_queue[-1]
             if now - last_time > 0.6:
@@ -82,29 +101,25 @@ class EventHandler:
                             return None
         self._push(pressed_button, now)
 
+        # the Fist pressing button on light off state of screen does nithing
         if not self.screen_light_status and not self.phone_status_changed:
             return None
             
+
         changes = dict()
 
-        # Phone Events
+        # Phone state changes
         if STATUS == 'type_number':
             if self.phone_status_changed and phone_status == "UP":
-                changes['STATUS'] = "calling"
-                changes['CALL'] = True
-                return changes
+                return self._call()
 
         if STATUS == 'ringing':
             if self.phone_status_changed and phone_status == "UP":
-                changes['STATUS'] = "incall"
-                changes['ANSWER'] = True
-                return changes
+                return self._answer()
 
         if STATUS == 'incall':
             if self.phone_status_changed and phone_status == "DOWN":
-                changes['STATUS'] = STATUS
-                changes['HANGUP'] = True
-                return changes
+                return self._hangUp()
         
 
         if self.phone_status_changed and phone_status == "UP":

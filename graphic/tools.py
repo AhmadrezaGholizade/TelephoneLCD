@@ -15,6 +15,11 @@ class Tools:
         self.draw_id(draw, img)
         self.draw_buttons(draw, width, height)
 
+    def draw_ringing_page(self, draw, number):
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
+        draw.text((18, 1), "RINGING...", font=name_font, fill="black")
+            
+
     def draw_clock(self, draw,
                pos_hour=(17, 20),
                pos_min=(55, 20),
@@ -208,4 +213,5 @@ class Tools:
             self.draw_icon_2(draw, img, self.hist_type_png[history_calls[i]["type"]], (13, 13), (0,n*12))
             # Name    
             draw.text((12, 0 + 12 * n), name, font=name_font, fill=color)
+
 

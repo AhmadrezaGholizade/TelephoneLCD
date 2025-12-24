@@ -12,6 +12,8 @@ sudo pacman -S --needed \
     sqlite \
     curl
 
+timedatectl set-timezone Asia/Tehran
+
 curl https://pyenv.run | bash
 
 echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
@@ -26,4 +28,6 @@ sudo cp ./tests/test_events/servicefile.ini /etc/systemd/system/phone-monitor.se
 systemctl daemon-reload
 systemctl enable phone_monitor.service
 systemctl start phone_monitor.service
+
+
 
