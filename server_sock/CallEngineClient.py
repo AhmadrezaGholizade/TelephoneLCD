@@ -73,7 +73,7 @@ class CallEngineClient:
                 time.sleep(retry_delay)
                 
                 # Exponential backoff
-                retry_delay = min(int(retry_delay * 1.2), self.max_reconnect_delay)
+                retry_delay = min(retry_delay * 1.2, self.max_reconnect_delay)
 
     # ---------- send with retry ----------
     def send(self, data):
