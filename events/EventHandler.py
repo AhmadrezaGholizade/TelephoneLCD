@@ -226,6 +226,10 @@ class EventHandler:
             if pressed_button == 'Hist':
                 changes['STATUS'] = 'history'
                 return changes
+            if pressed_button == 'Redial':
+                changes['STATUS'] = "type_number"
+                changes['CALL_HISTORY_ITEM'] = True
+                return changes
 
         if STATUS == 'type_number':
             if pressed_button == 'Hist':

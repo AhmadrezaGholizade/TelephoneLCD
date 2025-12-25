@@ -217,10 +217,14 @@ class Tools:
             
             draw.text((x_pos, 12 * n), print_name, font=name_font, fill=color)
 
-    def draw_history_items(self, draw, img, history_calls, ITEM_INDEX, PAGE_NUMBER):
+    def draw_history_items(self, draw, img, history_calls, contacts, ITEM_INDEX, PAGE_NUMBER):
         name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
         for n, i in enumerate(range(PAGE_NUMBER * 3, min(PAGE_NUMBER * 3 + 3, len(history_calls)))):
             name = history_calls[i]["phone_number"].strip()
+            for contact in contacts:
+                if contact["phone_number"] == name:
+                    name = contact["nick_name"]
+
             name = name[:15] + "..." if len(name) > 15 else name
 
             # # Black Theme for Selected Contact

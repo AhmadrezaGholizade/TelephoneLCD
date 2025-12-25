@@ -174,6 +174,8 @@ while True:
                 number_typing += changes.get("ADD_CHAR", False)
             if changes.get("CALL_ITEM", False):
                 number_typing = contacts[ITEM_INDEX]['phone_number']
+            if changes.get("CALL_HISTORY_ITEM", False):
+                number_typing = history_calls[ITEM_INDEX]["phone_number"].strip()
             
         if STATUS_CHANGED:
             STATUS_CHANGED = False
@@ -207,15 +209,15 @@ while True:
         if STATUS_CHANGED:
             STATUS_CHANGED = False
 
-            for h in history_calls:
-                for contact in contacts:
-                    if contact["phone_number"] == h["phone_number"]:
-                        h["phone_number"] = contact["nick_name"]
+            # for h in history_calls:
+            #     for contact in contacts:
+            #         if contact["phone_number"] == h["phone_number"]:
+            #             h["phone_number"] = contact["nick_name"]
         
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
 
-            tools.draw_history_items(draw, img, history_calls, ITEM_INDEX, PAGE_NUMBER)
+            tools.draw_history_items(draw, img, history_calls, contacts, ITEM_INDEX, PAGE_NUMBER)
 
             tools.draw_scrollbar(draw, PAGE_NUMBER, len(history_calls))
             tools.draw_buttons(draw, 124, fb.height, height=9,font_size=10,texts=("Back", "Detail", "", ""))
