@@ -239,5 +239,74 @@ class Tools:
             self.draw_icon_2(draw, img, self.hist_type_png[history_calls[i]["type"]], (13, 13), (0,n*12))
             # Name    
             draw.text((12, 0 + 12 * n), name, font=name_font, fill=color)
+    
+    def render_logout_page(self, fb):
+        img = Image.new("RGB", (fb.width, fb.height), color="white")
+        draw = ImageDraw.Draw(img)
+        self.draw_buttons(draw, fb.width, fb.height, height=11,font_size=10,texts=("Back", "Yes !", "", ""))
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
+        draw.text((3, 3), "Are You Sure?", font=name_font, fill="black")
+        fb.write(img)
+
+    def render_login_page(self, fb, capsOn,  active_field, username_text, password_text):
+        img = Image.new("RGB", (fb.width, fb.height), color="white")
+        draw = ImageDraw.Draw(img)
+        caps_text = "Cps:ON" if capsOn else "Cps:Off"
+        self.draw_buttons(draw, fb.width, fb.height, height=11,font_size=9,texts=("Back", "Enter", "Erase", caps_text))
+        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 9)
+        draw.text((3, 3), "UserName:", font=name_font, fill="black")
+        draw.text((3, 21), "Password:", font=name_font, fill="black")
+
+        self.draw_border(draw, pos=[45, 2, 123, 15])
+        self.draw_border(draw, pos=[45, 20, 123, 33])
+        if active_field == "username":
+            draw.rectangle([44, 1, 124, 16], outline="black", width=2)
+        else:
+            draw.rectangle([44, 19, 124, 34], outline="black", width=2)
+
+        name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
+        un_prefix = ""
+        if len(username_text) > 12:
+            un_prefix = "..."
+        draw.text((47, 3), un_prefix+username_text[-12:], font=name_font, fill="black")
+        pw_prefix = ""
+        if len(password_text) > 12:
+            pw_prefix = "..."
+        if password_text:
+            draw.text((47, 21), pw_prefix + "*" * (len(password_text[-11:])-1) + password_text[-1], font=name_font, fill="black")
+    
+        
+        fb.write(img)
+
+    def render_history_info(self, fb, ITEM_INDEX, history_calls, hist_type_png, hist_type_text):
+        img = Image.new("RGB", (fb.width, fb.height), color="white")
+
+        draw = ImageDraw.Draw(img)
+
+        self.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "", ""))
+
+        self.draw_icon(draw, img, "./img/tel.png", (11, 11), (2,1))
+
+        name = history_calls[ITEM_INDEX]["phone_number"].strip()
+        name = name[:15] + "..." if len(name) > 15 else name
+
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
+        draw.text((14, 0), name, font=name_font, fill="black")
+
+        self.draw_icon_2(draw, img, hist_type_png[history_calls[ITEM_INDEX]["type"]], (13, 13), (0,13))
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 9)
+        number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
+        draw.text((14, 13), hist_type_text[history_calls[ITEM_INDEX]["type"]], font=number_font, fill="black")
+
+        self.draw_icon(draw, img, "./img/hist.png", (11, 11), (2,26))
+
+        dt_gregorian = datetime.fromtimestamp(history_calls[ITEM_INDEX]["timestamp"])
+        dt_jalali = jdatetime.datetime.fromgregorian(datetime=dt_gregorian)
+        draw.text((14, 26), dt_jalali.strftime("%Y/%m/%d %H:%M:%S"), font=number_font, fill="black")
+
+        
+        fb.write(img)
+
+    
 
 

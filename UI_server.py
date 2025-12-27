@@ -276,6 +276,8 @@ while True:
                 STATUS = menu_items[int(changes.get("key", False))-1][0]
             ITEM_INDEX = 0
             PAGE_NUMBER = 0
+            username_text = ""
+            password_text = ""
             STATUS_CHANGED = True
             last_char_added_time = time.monotonic()
             last_pressed = changes.get("key", False)
@@ -355,33 +357,35 @@ while True:
     elif STATUS == "history_info":
         if STATUS_CHANGED:
             STATUS_CHANGED = False
-            img = Image.new("RGB", (fb.width, fb.height), color="white")
 
-            draw = ImageDraw.Draw(img)
+            tools.render_history_info(fb, ITEM_INDEX, history_calls, hist_type_png, hist_type_text)
 
-            tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "", ""))
+            # img = Image.new("RGB", (fb.width, fb.height), color="white")
 
-            tools.draw_icon(draw, img, "./img/tel.png", (11, 11), (2,1))
+            # draw = ImageDraw.Draw(img)
 
-            name = history_calls[ITEM_INDEX]["phone_number"].strip()
-            name = name[:15] + "..." if len(name) > 15 else name
+            # tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "", ""))
 
-            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
-            draw.text((14, 0), name, font=name_font, fill="black")
+            # tools.draw_icon(draw, img, "./img/tel.png", (11, 11), (2,1))
 
-            tools.draw_icon_2(draw, img, hist_type_png[history_calls[ITEM_INDEX]["type"]], (13, 13), (0,13))
-            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 9)
-            number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
-            draw.text((14, 13), hist_type_text[history_calls[ITEM_INDEX]["type"]], font=number_font, fill="black")
+            # name = history_calls[ITEM_INDEX]["phone_number"].strip()
+            # name = name[:15] + "..." if len(name) > 15 else name
 
-            tools.draw_icon(draw, img, "./img/hist.png", (11, 11), (2,26))
+            # name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
+            # draw.text((14, 0), name, font=name_font, fill="black")
 
-            dt_gregorian = datetime.fromtimestamp(history_calls[ITEM_INDEX]["timestamp"])
-            dt_jalali = jdatetime.datetime.fromgregorian(datetime=dt_gregorian)
-            draw.text((14, 26), dt_jalali.strftime("%Y/%m/%d %H:%M:%S"), font=number_font, fill="black")
+            # tools.draw_icon_2(draw, img, hist_type_png[history_calls[ITEM_INDEX]["type"]], (13, 13), (0,13))
+            # name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 9)
+            # number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
+            # draw.text((14, 13), hist_type_text[history_calls[ITEM_INDEX]["type"]], font=number_font, fill="black")
 
-            
-            fb.write(img)
+            # tools.draw_icon(draw, img, "./img/hist.png", (11, 11), (2,26))
+
+            # dt_gregorian = datetime.fromtimestamp(history_calls[ITEM_INDEX]["timestamp"])
+            # dt_jalali = jdatetime.datetime.fromgregorian(datetime=dt_gregorian)
+            # draw.text((14, 26), dt_jalali.strftime("%Y/%m/%d %H:%M:%S"), font=number_font, fill="black")
+
+            # fb.write(img)
 
     elif STATUS == "login":
         if changes and changes.get("pressed_button", False):
@@ -448,46 +452,13 @@ while True:
 
         if STATUS_CHANGED:
             STATUS_CHANGED = False
-
-            img = Image.new("RGB", (fb.width, fb.height), color="white")
-            draw = ImageDraw.Draw(img)
-            caps_text = "Cps: ON" if capsOn else "Cps: Off"
-            tools.draw_buttons(draw, fb.width, fb.height, height=11,font_size=10,texts=("Back", "Enter", "Erase", caps_text))
-            name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 9)
-            draw.text((3, 3), "UserName:", font=name_font, fill="black")
-            draw.text((3, 21), "Password:", font=name_font, fill="black")
-            tools.draw_border(draw, pos=[45, 2, 123, 15])
-            tools.draw_border(draw, pos=[45, 20, 123, 33])
-            if active_field == "username":
-                draw.rectangle([44, 1, 124, 16], outline="black", width=2)
-            else:
-                draw.rectangle([44, 19, 124, 34], outline="black", width=2)
-            name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
-            un_prefix = ""
-            if len(username_text) > 12:
-                un_prefix = "..."
-            draw.text((47, 3), un_prefix+username_text[-12:], font=name_font, fill="black")
-            pw_prefix = ""
-            if len(password_text) > 12:
-                pw_prefix = "..."
-            if password_text:
-                draw.text((47, 21), pw_prefix + "*" * (len(password_text[-11:])-1) + password_text[-1], font=name_font, fill="black")
-        
-            
-            fb.write(img)
+            tools.render_login_page(fb, capsOn, active_field, username_text, password_text)
 
     elif STATUS == "logout":
         if STATUS_CHANGED:
             STATUS_CHANGED = False
+            tools.render_logout_page(fb)
 
-            img = Image.new("RGB", (fb.width, fb.height), color="white")
-            draw = ImageDraw.Draw(img)
-            tools.draw_buttons(draw, fb.width, fb.height, height=11,font_size=10,texts=("Back", "Yes !", "", ""))
-            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
-            draw.text((3, 3), "Are You Sure?", font=name_font, fill="black")
-
-            
-            fb.write(img)
 
 
 
