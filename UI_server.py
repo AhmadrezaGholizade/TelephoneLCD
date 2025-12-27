@@ -208,6 +208,9 @@ while True:
                 number_typing = contacts[ITEM_INDEX]['phone_number']
             if changes.get("CALL_HISTORY_ITEM", False):
                 number_typing = history_calls[ITEM_INDEX]["phone_number"].strip()
+            if changes.get("ERASE", False):
+                if number_typing:
+                    number_typing = number_typing[:-1]
             
         if STATUS_CHANGED:
             STATUS_CHANGED = False
@@ -222,7 +225,7 @@ while True:
                 number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 18)
                 draw.text((4, 8), number_typing, font=number_font, fill="black")
 
-            tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "Add", ""))
+            tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "Erase", "Add"))
             fb.write(img)
 
 
@@ -266,14 +269,16 @@ while True:
                 ITEM_INDEX = len(menu_items) - 1
                 continue
 
-        if changes and changes.get("key", False):
-            if changes.get("key", False) == 'Ok':
+        if changes and changes.get("key", False) and ITEM_INDEX in set([0,1,5]): # TEMP 0,1,5
+            if changes.get("key", False) == 'Ok': 
                 STATUS = menu_items[ITEM_INDEX][0]
             else:
                 STATUS = menu_items[int(changes.get("key", False))-1][0]
             ITEM_INDEX = 0
             PAGE_NUMBER = 0
             STATUS_CHANGED = True
+            last_char_added_time = time.monotonic()
+            last_pressed = changes.get("key", False)
             continue
 
         if STATUS_CHANGED:
@@ -420,16 +425,18 @@ while True:
                 last_pressed = pressed
                     
             elif pressed in ["Down", "Up", "DND", "Menu"]:
+                if (time.monotonic() - last_char_added_time) < 0.5:
+                    continue
+                last_char_added_time = time.monotonic()
                 if pressed == "Menu":
                     capsOn = not capsOn
                     STATUS_CHANGED = True
-                if pressed == "Up":
+                elif pressed == "Up":
                     active_field = "username"
                     STATUS_CHANGED = True
                 elif pressed == "Down":
                     active_field = "password"
                     STATUS_CHANGED = True
-                
                 elif pressed == "DND":
                     if active_field == "username" and username_text:
                         username_text = username_text[:-1]
@@ -455,16 +462,16 @@ while True:
                 draw.rectangle([44, 1, 124, 16], outline="black", width=2)
             else:
                 draw.rectangle([44, 19, 124, 34], outline="black", width=2)
-            name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
+            name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 11)
             un_prefix = ""
             if len(username_text) > 12:
                 un_prefix = "..."
-            draw.text((47, 5), un_prefix+username_text[-12:], font=name_font, fill="black")
+            draw.text((47, 3), un_prefix+username_text[-12:], font=name_font, fill="black")
             pw_prefix = ""
             if len(password_text) > 12:
                 pw_prefix = "..."
             if password_text:
-                draw.text((47, 23), pw_prefix + "*" * (len(password_text[-11:])-1) + password_text[-1], font=name_font, fill="black")
+                draw.text((47, 21), pw_prefix + "*" * (len(password_text[-11:])-1) + password_text[-1], font=name_font, fill="black")
         
             
             fb.write(img)

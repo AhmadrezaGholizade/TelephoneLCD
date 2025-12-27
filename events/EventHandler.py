@@ -187,7 +187,8 @@ class EventHandler:
             if pressed_button == 'Hist':
                 changes['STATUS'] = "main_page"
                 return changes
-            if pressed_button in set(['Ok', '1', '2', '3', '4', '5', '6']):
+            # if pressed_button in set(['Ok', '1', '2', '3', '4', '5', '6']):
+            if pressed_button in set(['Ok', '1', '2', '6']): # TEMP
                 changes['STATUS'] = STATUS
                 changes['key'] = pressed_button
                 self.last_page_history = 'menu'
@@ -247,6 +248,10 @@ class EventHandler:
         if STATUS == 'type_number':
             if pressed_button == 'Hist':
                 changes['STATUS'] = 'main_page'
+                return changes
+            if pressed_button == 'DND':
+                changes['STATUS'] = STATUS
+                changes['ERASE'] = True
                 return changes
             if pressed_button in set(['1', '2', '3', '4', '5', '6', '7', '8', '9','*', '0', '#']):
                 changes['STATUS'] = "type_number"
