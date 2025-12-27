@@ -86,6 +86,26 @@ class EventHandler:
             # Update last action tine
             self.last_action_time = now
 
+        # the Fist pressing button on light off state of screen does nithing
+        if not self.screen_light_status and not self.phone_status_changed:
+            return None
+            
+
+        changes = dict()
+
+        if STATUS == 'login':
+            if pressed_button == 'Hist':
+                changes['STATUS'] = "menu"
+                return changes
+            if pressed_button == 'Redial':
+                changes['STATUS'] = 'main_page'
+                changes['LOGIN'] = True
+                return changes
+            else:
+                changes['STATUS'] = STATUS
+                changes['pressed_button'] = pressed_button
+                return changes  
+
         # Handle repitition of keys
         if len(self.button_queue) != 0:
             last_button, last_time = self.button_queue[-1]
@@ -97,13 +117,6 @@ class EventHandler:
                         if now - last_time <= 0.6:
                             return None
         self._push(pressed_button, now)
-
-        # the Fist pressing button on light off state of screen does nithing
-        if not self.screen_light_status and not self.phone_status_changed:
-            return None
-            
-
-        changes = dict()
 
         # Phone state changes
         if STATUS == 'type_number':
@@ -245,6 +258,16 @@ class EventHandler:
                 changes['STATUS'] = STATUS
                 changes['REJECT'] = True
                 return changes
+        
+        if STATUS == 'logout':
+            if pressed_button == 'Hist': 
+                changes['STATUS'] = "menu"
+                return changes
+            if pressed_button == 'Redial':
+                changes['STATUS'] = "main_page"
+                changes['LOGOUT'] = True
+                return changes
+
             
 
 

@@ -9,10 +9,10 @@ class Tools:
         "incoming": "./img/in.png",
         "outgoing": "./img/out.png"
     }
-    def render_main_page(self, draw, img, width, height):
+    def render_main_page(self, draw, img, width, height, login_state):
         self.draw_clock(draw)
         self.draw_date(draw)
-        self.draw_id(draw, img)
+        self.draw_id(draw, img, login_state)
         self.draw_buttons(draw, width, height)
 
     def draw_call_page(self, fb, number, type_):
@@ -75,8 +75,7 @@ class Tools:
         draw.text(text_pos, date_str, font=font, fill=fg, anchor="mm")
 
     def draw_id(self,draw,
-                img,
-                example_id="54342113",
+                img, login_state,
                 icon_path="./img/tel.png",
                 icon_pos=(72, 3),
                 icon_size=(14, 14),
@@ -84,11 +83,15 @@ class Tools:
                 font_path="fonts/MS_Sans_Serif.ttf",
                 font_size=10,
                 color="black"):
+        if login_state:
+            font = ImageFont.truetype(font_path, font_size)
+            self.draw_icon(draw, img, icon_path, icon_size, icon_pos)
 
-        self.draw_icon(draw, img, icon_path, icon_size, icon_pos)
-
-        font = ImageFont.truetype(font_path, font_size)
-        draw.text(text_pos, example_id, font=font, fill=color, anchor="mm")
+            draw.text(text_pos, login_state, font=font, fill=color, anchor="mm")
+        else: 
+            font = ImageFont.truetype(font_path, 9)
+            draw.text((107, 9), "SignedOut", font=font, fill=color, anchor="mm")
+            self.draw_icon(draw, img, "./img/forbidden.png", (11, 11), (74, 4))
 
     def draw_buttons(self,draw,
                     fb_width,
@@ -137,8 +140,8 @@ class Tools:
         draw.rectangle([1, 0, 122, 9], fill="black")
         draw.text((57, 6), header, font=name_font, fill="white", anchor="mm")
 
-    def draw_border(self, draw, width=1):
-        draw.rectangle([0, 0, 127, 47], outline="black", width=width)
+    def draw_border(self, draw, pos=[0, 0, 127, 47] , width=1):
+        draw.rectangle(pos, outline="black", width=width)
 
     def draw_scrollbar(self, draw, CONTACT_PAGE_NUMBER, len_contacts):
         draw.rectangle([124, 0, 124, 48], fill="black") # seperator line

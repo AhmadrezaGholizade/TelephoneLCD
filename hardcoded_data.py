@@ -14,6 +14,7 @@ menu_items = [
     ("setting", {"text": "Setting", "icon_path": "img/setting.png"}),
     ("messeges", {"text": "Messege", "icon_path": "img/messege.png"}),
     ("DND", {"text": "DND", "icon_path": "img/DND.png"}),
+    ("login", {"text": "Login", "icon_path": "img/login.png"}),
 ]
 contacts = [
     {"nick_name": "Ali Rahmatlahi", "phone_number": "09123456789", "user_type": "SIP"},
@@ -96,3 +97,18 @@ history_calls = [
         "timestamp": 1734393000  # 2024-12-16 23:30:00
     }
 ]
+
+CHARS={
+    '0': ['0'],
+    '1': ['1'],
+    '2': ['2', 'A', 'B', 'C'],
+    '3': ['3', 'D', 'E', 'F'],
+    '4': ['4', 'G', 'H', 'I'],
+    '5': ['5', 'J', 'K', 'L'],
+    '6': ['6', 'M', 'N', 'O'],
+    '7': ['7', 'P', 'Q', 'R', 'S'],
+    '8': ['8', 'T', 'U', 'V'],
+    '9': ['9', 'W', 'X', 'Y', 'Z'],
+    '*': ['*', '.'],
+    '#': ['#'],
+}

@@ -11,9 +11,20 @@ import json
 from call_manager.call_handler import Call_handler
 from hardcoded_data import *
 
+def add_login_item():
+    global menu_items
+    menu_items = menu_items[0:5]
+    menu_items.append(("login", {"text": "Login", "icon_path": "img/login.png"}))
+def add_logout_item():
+    global menu_items
+    menu_items = menu_items[0:5]
+    menu_items.append(("logout", {"text": "Logout", "icon_path": "img/logout.png"}))
+
+
 last_event = None
+login_state = False
 def handle_event(event):
-    global last_event
+    global last_event, login_state
     if event.get("action") != "ping" and event.get("event") != "pong":
         print("EVENT RECEIVED:", event)
         last_event = event
@@ -24,7 +35,17 @@ def handle_event(event):
             if event["value"] == "IDLE":
                 STATUS_CHANGED = True
                 STATUS = 'main_page'
+                add_logout_item()
                 print("IDLE: Return to main page")
+                login_state = event["user"]["phoneNumber"]
+                return
+            
+            if event["value"] == "LOGGED_OUT":
+                STATUS_CHANGED = True
+                STATUS = 'main_page'
+                add_login_item()
+                print("LOGED_OUT: Return to main page")
+                login_state = None
                 return
             
             if event["value"] == "RINGING":
@@ -86,8 +107,19 @@ last_second = datetime.now().second
 # Number Printing in typing number page
 number_typing = ""
 
+
+
 # Check the process of Ping Pong
 last_ping = time.monotonic()
+last_char_added_time = time.monotonic()
+last_pressed = None
+char_index = 0
+
+username_text = ""
+password_text = ""
+active_field = "username"
+
+capsOn = True
 
 while True:
     time.sleep(0.05)
@@ -101,7 +133,7 @@ while True:
     changes = event_handler.handle_key(STATUS)
 
     # Handle Call orders from changes
-    callHandler.main_handler(changes, number_typing)
+    callHandler.main_handler(changes, number_typing, username_text, password_text)
 
     # Chack Screen light timeout
     event_handler.check_light_timeout(fb)
@@ -305,7 +337,7 @@ while True:
                 STATUS_CHANGED = False
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
-            tools.render_main_page(draw, img, fb.width, fb.height)
+            tools.render_main_page(draw, img, fb.width, fb.height, login_state)
             fb.write(img)
             last_minute = now.minute
         else:
@@ -345,6 +377,116 @@ while True:
 
             
             fb.write(img)
+
+    elif STATUS == "login":
+        if changes and changes.get("pressed_button", False):
+            pressed = changes.get("pressed_button", "")
+
+            if pressed in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "#"]:
+                
+
+                if (pressed == last_pressed) and (time.monotonic() - last_char_added_time) < 0.5:
+                    continue
+                elif (pressed == last_pressed) and (time.monotonic() - last_char_added_time) < 1.2:
+                    char_index += 1
+                    if char_index >= len(CHARS[pressed]):
+                        char_index = 0      
+
+                    if not capsOn:
+                        adding_char = CHARS[pressed][char_index].lower()
+                    else:
+                        adding_char = CHARS[pressed][char_index]              
+
+                    if active_field == "username":
+                        username_text = username_text[:-1] + adding_char
+                    elif active_field == "password":
+                        password_text = password_text[:-1] + adding_char
+                    STATUS_CHANGED = True
+                else: 
+                    char_index = 0
+
+                    if not capsOn:
+                        adding_char = CHARS[pressed][char_index].lower()
+                    else:
+                        adding_char = CHARS[pressed][char_index]
+
+                    if active_field == "username":
+                        username_text += adding_char
+                    elif active_field == "password":
+                        password_text += adding_char
+                    STATUS_CHANGED = True
+
+                last_char_added_time = time.monotonic()
+                last_pressed = pressed
+                    
+            elif pressed in ["Down", "Up", "DND", "Menu"]:
+                if pressed == "Menu":
+                    capsOn = not capsOn
+                    STATUS_CHANGED = True
+                if pressed == "Up":
+                    active_field = "username"
+                    STATUS_CHANGED = True
+                elif pressed == "Down":
+                    active_field = "password"
+                    STATUS_CHANGED = True
+                
+                elif pressed == "DND":
+                    if active_field == "username" and username_text:
+                        username_text = username_text[:-1]
+                    elif active_field == "password" and password_text:
+                        password_text = password_text[:-1]
+                    STATUS_CHANGED = True
+
+
+
+        if STATUS_CHANGED:
+            STATUS_CHANGED = False
+
+            img = Image.new("RGB", (fb.width, fb.height), color="white")
+            draw = ImageDraw.Draw(img)
+            caps_text = "Cps: ON" if capsOn else "Cps: Off"
+            tools.draw_buttons(draw, fb.width, fb.height, height=11,font_size=10,texts=("Back", "Enter", "Erase", caps_text))
+            name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 9)
+            draw.text((3, 3), "UserName:", font=name_font, fill="black")
+            draw.text((3, 21), "Password:", font=name_font, fill="black")
+            tools.draw_border(draw, pos=[45, 2, 123, 15])
+            tools.draw_border(draw, pos=[45, 20, 123, 33])
+            if active_field == "username":
+                draw.rectangle([44, 1, 124, 16], outline="black", width=2)
+            else:
+                draw.rectangle([44, 19, 124, 34], outline="black", width=2)
+            name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
+            un_prefix = ""
+            if len(username_text) > 12:
+                un_prefix = "..."
+            draw.text((47, 5), un_prefix+username_text[-12:], font=name_font, fill="black")
+            pw_prefix = ""
+            if len(password_text) > 12:
+                pw_prefix = "..."
+            if password_text:
+                draw.text((47, 23), pw_prefix + "*" * (len(password_text[-11:])-1) + password_text[-1], font=name_font, fill="black")
+        
+            
+            fb.write(img)
+
+    elif STATUS == "logout":
+        if STATUS_CHANGED:
+            STATUS_CHANGED = False
+
+            img = Image.new("RGB", (fb.width, fb.height), color="white")
+            draw = ImageDraw.Draw(img)
+            tools.draw_buttons(draw, fb.width, fb.height, height=11,font_size=10,texts=("Back", "Yes !", "", ""))
+            name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 14)
+            draw.text((3, 3), "Are You Sure?", font=name_font, fill="black")
+
+            
+            fb.write(img)
+
+
+
+            
+    
+
 
 
 

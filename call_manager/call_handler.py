@@ -5,7 +5,7 @@ class Call_handler:
     def __init__(self, callEngineClient):
         self.callEngineClient = callEngineClient
 
-    def main_handler(self, changes, number):
+    def main_handler(self, changes, number, username, password):
         if not changes:
             return
 
@@ -24,7 +24,29 @@ class Call_handler:
         # reject
         if changes.get("REJECT", False):
             self._reject()
+
+        if changes.get("LOGOUT", False):
+            self._logout()
+        if changes.get("LOGIN", False):
+            self._login(username, password)
+
+    def _login(self, username, password):
+        msg = {
+            "action": "login",
+            "credentials": {
+                "username": username,
+                "password": password
+            }
+        }
+        self.callEngineClient.send(json.dumps(msg))
         
+    def _logout(self):
+        msg = {
+            "action": "logout"
+        }
+        self.callEngineClient.send(json.dumps(msg))
+
+
     def _reject(self):
         msg = {
             "action": "reject"
