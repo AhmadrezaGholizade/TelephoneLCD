@@ -80,8 +80,6 @@ fb = LCDFrameBuffer()
 # Helps in Drawing
 tools = Tools()
 
-# tools.draw_initialization(fb)
-# time.sleep(2)
 
 # Handle Key and Phone Events
 event_handler = EventHandler()
@@ -160,8 +158,10 @@ while True:
             target_number = ""
             if 'from' in last_event.keys():
                 target_number = last_event['from']['phoneNumber']
-            if 'to' in last_event.keys():
+            elif 'to' in last_event.keys():
                 target_number = last_event['to']['phoneNumber']
+            elif 'with' in last_event.keys():
+                target_number = last_event['with']['phoneNumber']
             STATUS_CHANGED = False
             tools.draw_call_page(fb, target_number, STATUS)
             
@@ -175,12 +175,13 @@ while True:
         
         if STATUS_CHANGED:
             target_number = ""
-            print(last_event.keys())
-            print(last_event)
             if 'from' in last_event.keys():
                 target_number = last_event['from']['phoneNumber']
-            if 'to' in last_event.keys():
+            elif 'to' in last_event.keys():
                 target_number = last_event['to']['phoneNumber']
+            elif 'with' in last_event.keys():
+                target_number = last_event['with']['phoneNumber']
+            STATUS_CHANGED = False
             STATUS_CHANGED = False
             tools.draw_call_page(fb, target_number, STATUS)
 
@@ -191,8 +192,11 @@ while True:
             target_number = ""
             if 'from' in last_event.keys():
                 target_number = last_event['from']['phoneNumber']
-            if 'to' in last_event.keys():
+            elif 'to' in last_event.keys():
                 target_number = last_event['to']['phoneNumber']
+            elif 'with' in last_event.keys():
+                target_number = last_event['with']['phoneNumber']
+            STATUS_CHANGED = False
             STATUS_CHANGED = False
             tools.draw_call_page(fb, target_number, STATUS)
 
@@ -225,7 +229,7 @@ while True:
                 number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 18)
                 draw.text((4, 8), number_typing, font=number_font, fill="black")
 
-            tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "Erase", "Add"))
+            tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "Erase", ""))
             fb.write(img)
 
 
@@ -243,11 +247,6 @@ while True:
 
         if STATUS_CHANGED:
             STATUS_CHANGED = False
-
-            # for h in history_calls:
-            #     for contact in contacts:
-            #         if contact["phone_number"] == h["phone_number"]:
-            #             h["phone_number"] = contact["nick_name"]
         
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
@@ -359,33 +358,6 @@ while True:
             STATUS_CHANGED = False
 
             tools.render_history_info(fb, ITEM_INDEX, history_calls, hist_type_png, hist_type_text)
-
-            # img = Image.new("RGB", (fb.width, fb.height), color="white")
-
-            # draw = ImageDraw.Draw(img)
-
-            # tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "", ""))
-
-            # tools.draw_icon(draw, img, "./img/tel.png", (11, 11), (2,1))
-
-            # name = history_calls[ITEM_INDEX]["phone_number"].strip()
-            # name = name[:15] + "..." if len(name) > 15 else name
-
-            # name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
-            # draw.text((14, 0), name, font=name_font, fill="black")
-
-            # tools.draw_icon_2(draw, img, hist_type_png[history_calls[ITEM_INDEX]["type"]], (13, 13), (0,13))
-            # name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 9)
-            # number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
-            # draw.text((14, 13), hist_type_text[history_calls[ITEM_INDEX]["type"]], font=number_font, fill="black")
-
-            # tools.draw_icon(draw, img, "./img/hist.png", (11, 11), (2,26))
-
-            # dt_gregorian = datetime.fromtimestamp(history_calls[ITEM_INDEX]["timestamp"])
-            # dt_jalali = jdatetime.datetime.fromgregorian(datetime=dt_gregorian)
-            # draw.text((14, 26), dt_jalali.strftime("%Y/%m/%d %H:%M:%S"), font=number_font, fill="black")
-
-            # fb.write(img)
 
     elif STATUS == "login":
         if changes and changes.get("pressed_button", False):

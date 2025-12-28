@@ -61,6 +61,10 @@ class EventHandler:
         return {
             'HANGUP': True
         }
+    def _reject(self):
+        return {
+            'REJECT': True
+        }
 
     def handle_key(self, STATUS):
         state = self.get_phone_state()
@@ -249,6 +253,8 @@ class EventHandler:
             if pressed_button == 'Hist':
                 changes['STATUS'] = 'main_page'
                 return changes
+            if pressed_button == 'Redial':
+                return self._call()
             if pressed_button == 'DND':
                 changes['STATUS'] = STATUS
                 changes['ERASE'] = True
@@ -260,9 +266,14 @@ class EventHandler:
 
         if STATUS == 'ringing':
             if pressed_button == 'Hist':
-                changes['STATUS'] = STATUS
-                changes['REJECT'] = True
-                return changes
+                return self._answer()
+            if pressed_button == 'Redial':
+                return self._reject()
+            
+        if STATUS in ['calling', 'incall']:
+            if pressed_button == 'Hist':
+                return self._hangUp()
+            
         
         if STATUS == 'logout':
             if pressed_button == 'Hist': 

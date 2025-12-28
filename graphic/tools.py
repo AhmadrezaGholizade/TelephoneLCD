@@ -28,7 +28,13 @@ class Tools:
         draw.text((15, 3), type_dict[type_], font=name_font, fill="black")
         name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 12)
         draw.text((15, 18), number, font=name_font, fill="black")
-        self.draw_buttons(draw, fb.width, fb.height, texts=("Answ.", "Reject", "", ""))
+
+        if type_=="incall":
+            self.draw_buttons(draw, fb.width, fb.height, texts=("HngUp", "", "", ""))
+        if type_=="ringing":
+            self.draw_buttons(draw, fb.width, fb.height, texts=("Answ.", "Reject", "", ""))
+        if type_=="calling":
+            self.draw_buttons(draw, fb.width, fb.height, texts=("HngUp", "", "", ""))
         fb.write(img)
     
     def draw_initialization(self,fb):
