@@ -22,9 +22,10 @@ def add_logout_item():
 
 
 last_event = None
+last_error_event = None
 login_state = False
 def handle_event(event):
-    global last_event, login_state
+    global last_event, login_state, last_error_event
     if event.get("action") != "ping" and event.get("event") != "pong":
         print("EVENT RECEIVED:", event)
         last_event = event
@@ -41,11 +42,16 @@ def handle_event(event):
                 return
             
             if event["value"] == "LOGGED_OUT":
-                STATUS_CHANGED = True
-                STATUS = 'main_page'
+                # STATUS_CHANGED = True
+                # STATUS = 'main_page'
                 add_login_item()
-                print("LOGED_OUT: Return to main page")
+                # print("LOGED_OUT: Return to main page")
                 login_state = None
+                return
+
+            if event["value"] == "ERROR":
+                STATUS = 'error'
+                last_error_event = event
                 return
             
             if event["value"] == "RINGING":
@@ -430,6 +436,20 @@ while True:
         if STATUS_CHANGED:
             STATUS_CHANGED = False
             tools.render_logout_page(fb)
+
+    elif STATUS == "error":
+        img = Image.new("RGB", (fb.width, fb.height), color="black")
+        draw = ImageDraw.Draw(img)
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 11)
+        draw.text((3, 3), "ERROR:", font=name_font, fill="white")
+        name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 9)
+        draw.text((6, 22), last_error_event.get("reason", ""), font=name_font, fill="white")
+        fb.write(img)
+        time.sleep(5)
+
+        STATUS_CHANGED = True
+        STATUS = "main_page"
+        continue
 
 
 
