@@ -140,7 +140,7 @@ class EventHandler:
                 return self._hangUp()
         
 
-        if self.phone_status_changed and phone_status == "UP":
+        if self.phone_status_changed and phone_status == "UP" and STATUS != "incall":
             changes['STATUS'] = "type_number"
             if STATUS != 'type_number':
                 changes['FIRST_CHAR'] = ""
