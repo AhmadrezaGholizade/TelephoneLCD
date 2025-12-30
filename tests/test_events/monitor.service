@@ -1,0 +1,21 @@
+[Unit]
+Description=LCD UI Phone Controller
+After=network.target call_engine.service
+Requires=call_engine.service
+
+[Service]
+Type=simple
+WorkingDirectory=/root/TelephoneLCD
+ExecStart=/root/TelephoneLCD/venv/bin/python /root/TelephoneLCD/UI_server.py
+
+Restart=always
+RestartSec=2
+
+StandardOutput=journal
+StandardError=journal
+
+User=root
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
