@@ -168,9 +168,9 @@ while True:
             # if not DND:
             #     response = requests.get("http://192.168.1.101:5000/play/ringtone/us-cellular-mello.wav")
 
-            if response.status_code != 200:
-                print("Status:", response.status_code)
-                print("Response:", response.text)
+            # if response.status_code != 200:
+            #     print("Status:", response.status_code)
+            #     print("Response:", response.text)
                 
             target_number = ""
             if 'from' in last_event.keys():
@@ -194,9 +194,9 @@ while True:
         if STATUS_CHANGED:
             # response = requests.get("http://127.0.0.1:5000/play/call/phone-outgoing-call.wav")
 
-            if response.status_code != 200:
-                print("Status:", response.status_code)
-                print("Response:", response.text)
+            # if response.status_code != 200:
+            #     print("Status:", response.status_code)
+            #     print("Response:", response.text)
 
             target_number = ""
             if 'from' in last_event.keys():
