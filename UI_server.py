@@ -165,8 +165,8 @@ while True:
     if STATUS=="ringing":
 
         if STATUS_CHANGED:
-            if not DND:
-                response = requests.get("http://192.168.1.101:5000/play/ringtone/us-cellular-mello.wav")
+            # if not DND:
+            #     response = requests.get("http://192.168.1.101:5000/play/ringtone/us-cellular-mello.wav")
 
             if response.status_code != 200:
                 print("Status:", response.status_code)
@@ -192,7 +192,7 @@ while True:
             continue
         
         if STATUS_CHANGED:
-            response = requests.get("http://127.0.0.1:5000/play/call/phone-outgoing-call.wav")
+            # response = requests.get("http://127.0.0.1:5000/play/call/phone-outgoing-call.wav")
 
             if response.status_code != 200:
                 print("Status:", response.status_code)
@@ -208,12 +208,12 @@ while True:
             STATUS_CHANGED = False
             tools.draw_call_page(fb, target_number, STATUS)
 
-    if STATUS_CHANGED and STATUS not in ['ringing', 'calling']:
-        response = requests.get("http://192.168.1.101:5000/stop")
+    # if STATUS_CHANGED and STATUS not in ['ringing', 'calling']:
+    #     response = requests.get("http://192.168.1.101:5000/stop")
 
-        if response.status_code != 200:
-            print("Status:", response.status_code)
-            print("Response:", response.text)
+    #     if response.status_code != 200:
+    #         print("Status:", response.status_code)
+    #         print("Response:", response.text)
 
     
     if STATUS=="incall":
