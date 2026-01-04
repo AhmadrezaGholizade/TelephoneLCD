@@ -9,11 +9,13 @@ class Tools:
         "incoming": "./img/in.png",
         "outgoing": "./img/out.png"
     }
-    def render_main_page(self, draw, img, width, height, login_state):
+    def render_main_page(self, draw, img, width, height, login_state, DND):
         self.draw_clock(draw)
         self.draw_date(draw)
         self.draw_id(draw, img, login_state)
         self.draw_buttons(draw, width, height)
+        if not DND:
+            draw.line([64, 34, 97, 48], width=2)
 
     def draw_call_page(self, fb, number, type_):
         img = Image.new("RGB", (fb.width, fb.height), color="white")

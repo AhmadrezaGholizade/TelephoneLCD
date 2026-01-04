@@ -113,12 +113,12 @@ class EventHandler:
         # Handle repitition of keys
         if len(self.button_queue) != 0:
             last_button, last_time = self.button_queue[-1]
-            if now - last_time > 1:
+            if now - last_time > 0.6:
                 self.button_queue = deque(maxlen=2)
             else:
                 if pressed_button == last_button:
                     if not self._all_same(pressed_button):
-                        if now - last_time <= 0.6:
+                        if now - last_time <= 0.5:
                             return None
         self._push(pressed_button, now)
 
@@ -140,12 +140,12 @@ class EventHandler:
                 return self._hangUp()
         
 
-        if self.phone_status_changed and phone_status == "UP" and STATUS != "incall":
+        if self.phone_status_changed and phone_status == "UP" and (STATUS not in ['incall', 'calling', 'ringing']):
             changes['STATUS'] = "type_number"
             if STATUS != 'type_number':
                 changes['FIRST_CHAR'] = ""
             return changes
-        if self.phone_status_changed and phone_status == "DOWN":
+        if self.phone_status_changed and phone_status == "DOWN" and (STATUS not in ['incall', 'calling', 'ringing']):
             changes['STATUS'] = "main_page"
             return changes
 
@@ -216,6 +216,10 @@ class EventHandler:
                 changes['STATUS'] = "history"
                 self.last_page_history = 'main_page'
                 changes['INDEX_RESET'] = True
+                return changes
+            if pressed_button == 'DND':
+                changes["DND"] = True
+                changes['STATUS'] = STATUS
                 return changes
             if pressed_button in set(['1', '2', '3', '4', '5', '6', '7', '8', '9','*', '0', '#']):
                 changes['STATUS'] = "type_number"

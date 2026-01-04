@@ -10,6 +10,7 @@ from server_sock.CallEngineClient import CallEngineClient
 import json
 from call_manager.call_handler import Call_handler
 from hardcoded_data import *
+import requests
 
 def add_login_item():
     global menu_items
@@ -111,7 +112,7 @@ last_second = datetime.now().second
 # Number Printing in typing number page
 number_typing = ""
 
-
+DND = False
 
 # Check the process of Ping Pong
 last_ping = time.monotonic()
@@ -157,10 +158,20 @@ while True:
         if changes.get("INDEX_SET", False):
             ITEM_INDEX = changes.get("INDEX_SET", False)
 
+        if changes.get("DND", False):
+            DND = not DND
+
     # Ringing Page
     if STATUS=="ringing":
 
         if STATUS_CHANGED:
+            if not DND:
+                response = requests.get("http://192.168.1.101:5000/play/ringtone/us-cellular-mello.wav")
+
+            if response.status_code != 200:
+                print("Status:", response.status_code)
+                print("Response:", response.text)
+                
             target_number = ""
             if 'from' in last_event.keys():
                 target_number = last_event['from']['phoneNumber']
@@ -174,12 +185,19 @@ while True:
 
     # Calling Page
     if STATUS=="calling":
+
         if not number_typing:
             STATUS_CHANGED = True
             STATUS = 'main_page'
             continue
         
         if STATUS_CHANGED:
+            response = requests.get("http://127.0.0.1:5000/play/call/phone-outgoing-call.wav")
+
+            if response.status_code != 200:
+                print("Status:", response.status_code)
+                print("Response:", response.text)
+
             target_number = ""
             if 'from' in last_event.keys():
                 target_number = last_event['from']['phoneNumber']
@@ -188,8 +206,14 @@ while True:
             elif 'with' in last_event.keys():
                 target_number = last_event['with']['phoneNumber']
             STATUS_CHANGED = False
-            STATUS_CHANGED = False
             tools.draw_call_page(fb, target_number, STATUS)
+
+    if STATUS_CHANGED and STATUS not in ['ringing', 'calling']:
+        response = requests.get("http://192.168.1.101:5000/stop")
+
+        if response.status_code != 200:
+            print("Status:", response.status_code)
+            print("Response:", response.text)
 
     
     if STATUS=="incall":
@@ -232,8 +256,9 @@ while True:
                 draw.text((4, 8), "Type Number...", font=number_font, fill="black")
 
             else:
-                number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 18)
-                draw.text((4, 8), number_typing, font=number_font, fill="black")
+                number_font = ImageFont.truetype("fonts/dejavu-sans-mono/dejavu-sans-mono.book.ttf", 18)
+                print_string = number_typing if len(number_typing) < 10 else "." + number_typing[-9:]
+                draw.text((4, 8), print_string, font=number_font, fill="black")
 
             tools.draw_buttons(draw, fb.width, fb.height, height=9,font_size=10,texts=("Back", "Call", "Erase", ""))
             fb.write(img)
@@ -349,7 +374,7 @@ while True:
                 STATUS_CHANGED = False
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
-            tools.render_main_page(draw, img, fb.width, fb.height, login_state)
+            tools.render_main_page(draw, img, fb.width, fb.height, login_state, DND)
             fb.write(img)
             last_minute = now.minute
         else:
