@@ -10,7 +10,7 @@ class EventHandler:
     def __init__(self):
         # queue of (button, timestamp)
         self.last_page_history = None
-        self.button_queue = deque(maxlen=2)
+        self.button_queue = deque(maxlen=3)
         self.last_action_time = time.monotonic()
         self.screen_light_status = True
         self.last_phone_status = None
@@ -20,10 +20,10 @@ class EventHandler:
         self.button_queue.append((button, timestamp))
 
     def _all_same(self, button):
-        if len(list(self.button_queue))<2:
+        if len(list(self.button_queue))<3:
             return False
-        b1, b2 = list(self.button_queue)
-        if b1[0]==b2[0] and b1[0] == button:
+        b1, b2, b3 = list(self.button_queue)
+        if b1[0]==b2[0] and b2[0]==b3[0] and b1[0] == button:
             return True
         else: 
             return False
@@ -113,8 +113,8 @@ class EventHandler:
         # Handle repitition of keys
         if len(self.button_queue) != 0:
             last_button, last_time = self.button_queue[-1]
-            if now - last_time > 0.6:
-                self.button_queue = deque(maxlen=2)
+            if now - last_time > 0.55:
+                self.button_queue = deque(maxlen=3)
             else:
                 if pressed_button == last_button:
                     if not self._all_same(pressed_button):

@@ -25,8 +25,9 @@ def add_logout_item():
 last_event = None
 last_error_event = None
 login_state = False
+call_start = None
 def handle_event(event):
-    global last_event, login_state, last_error_event
+    global last_event, login_state, last_error_event, call_start
     if event.get("action") != "ping" and event.get("event") != "pong":
         print("EVENT RECEIVED:", event)
         last_event = event
@@ -64,6 +65,7 @@ def handle_event(event):
             if event["value"] == "INCALL":
                 STATUS_CHANGED = True
                 STATUS = 'incall'
+                call_start = time.monotonic()
                 print("CALL STARTED:  go to INCALL page")
                 return
 
@@ -86,7 +88,6 @@ def handle_event(event):
 fb = LCDFrameBuffer()
 # Helps in Drawing
 tools = Tools()
-
 
 # Handle Key and Phone Events
 event_handler = EventHandler()
@@ -125,6 +126,7 @@ password_text = ""
 active_field = "username"
 
 capsOn = True
+
 
 while True:
     time.sleep(0.05)
