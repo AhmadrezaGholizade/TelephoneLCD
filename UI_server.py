@@ -185,6 +185,7 @@ while True:
                 target_number = last_event['to'].get("phoneNumber", "")
             elif 'with' in last_event.keys():
                 target_number = last_event['with'].get("phoneNumber", "")
+            target_number = target_number + f"({last_event.get('protocol', '')})"
             
             STATUS_CHANGED = False
             tools.draw_call_page(fb, target_number, STATUS)
@@ -216,6 +217,7 @@ while True:
                 target_number = last_event['to'].get("phoneNumber", "")
             elif 'with' in last_event.keys():
                 target_number = last_event['with'].get("phoneNumber", "")
+            target_number = target_number + f"({last_event.get('protocol', '')})"
             STATUS_CHANGED = False
             tools.draw_call_page(fb, target_number, STATUS)
 
