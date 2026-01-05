@@ -167,20 +167,25 @@ while True:
     if STATUS=="ringing":
 
         if STATUS_CHANGED:
-            # if not DND:
-            #     response = requests.get("http://192.168.1.101:5000/play/ringtone/us-cellular-mello.wav")
+            try:
+                if not DND:
+                    response = requests.get("http://192.168.1.101:5000/play/ringtone/us-cellular-mello.wav")
 
-            # if response.status_code != 200:
-            #     print("Status:", response.status_code)
-            #     print("Response:", response.text)
+                if response.status_code != 200:
+                    print("Status:", response.status_code)
+                    print("Response:", response.text)
+            except Exception as e:
+                print("Request error:", e)
+                pass
                 
             target_number = ""
             if 'from' in last_event.keys():
-                target_number = last_event['from']['phoneNumber']
+                target_number = last_event['from'].get("phoneNumber", "")
             elif 'to' in last_event.keys():
-                target_number = last_event['to']['phoneNumber']
+                target_number = last_event['to'].get("phoneNumber", "")
             elif 'with' in last_event.keys():
-                target_number = last_event['with']['phoneNumber']
+                target_number = last_event['with'].get("phoneNumber", "")
+            
             STATUS_CHANGED = False
             tools.draw_call_page(fb, target_number, STATUS)
             
@@ -194,43 +199,56 @@ while True:
             continue
         
         if STATUS_CHANGED:
-            # response = requests.get("http://127.0.0.1:5000/play/call/phone-outgoing-call.wav")
+            try:
+                response = requests.get("http://127.0.0.1:5000/play/call/phone-outgoing-call.wav")
 
-            # if response.status_code != 200:
-            #     print("Status:", response.status_code)
-            #     print("Response:", response.text)
+                if response.status_code != 200:
+                    print("Status:", response.status_code)
+                    print("Response:", response.text)
+            except Exception as e:
+                print("Request error:", e)
+                pass
 
             target_number = ""
             if 'from' in last_event.keys():
-                target_number = last_event['from']['phoneNumber']
+                target_number = last_event['from'].get("phoneNumber", "")
             elif 'to' in last_event.keys():
-                target_number = last_event['to']['phoneNumber']
+                target_number = last_event['to'].get("phoneNumber", "")
             elif 'with' in last_event.keys():
-                target_number = last_event['with']['phoneNumber']
+                target_number = last_event['with'].get("phoneNumber", "")
             STATUS_CHANGED = False
             tools.draw_call_page(fb, target_number, STATUS)
 
-    # if STATUS_CHANGED and STATUS not in ['ringing', 'calling']:
-    #     response = requests.get("http://192.168.1.101:5000/stop")
+    if STATUS_CHANGED and STATUS not in ['ringing', 'calling']:
+        try:
+            response = requests.get("http://192.168.1.101:5000/stop")
 
-    #     if response.status_code != 200:
-    #         print("Status:", response.status_code)
-    #         print("Response:", response.text)
+            if response.status_code != 200:
+                print("Status:", response.status_code)
+                print("Response:", response.text)
+        except Exception as e:
+            print("Request error:", e)
+            pass
 
     
     if STATUS=="incall":
+        now = datetime.now()
+        if now.second != last_second:
+            STATUS_CHANGED = True
+            last_second = now.second
 
         if STATUS_CHANGED:
             target_number = ""
             if 'from' in last_event.keys():
-                target_number = last_event['from']['phoneNumber']
+                target_number = last_event['from'].get("phoneNumber", "")
             elif 'to' in last_event.keys():
-                target_number = last_event['to']['phoneNumber']
+                target_number = last_event['to'].get("phoneNumber", "")
             elif 'with' in last_event.keys():
-                target_number = last_event['with']['phoneNumber']
+                target_number = last_event['with'].get("phoneNumber", "")
+            target_number = target_number + f"({last_event.get('protocol', '')})"
+            
             STATUS_CHANGED = False
-            STATUS_CHANGED = False
-            tools.draw_call_page(fb, target_number, STATUS)
+            tools.draw_call_page(fb, target_number, STATUS, call_start=call_start)
 
 
 
@@ -464,7 +482,7 @@ while True:
             STATUS_CHANGED = False
             tools.render_logout_page(fb)
 
-    elif STATUS == "error":
+    if last_error_event:
         img = Image.new("RGB", (fb.width, fb.height), color="black")
         draw = ImageDraw.Draw(img)
         name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 11)
@@ -476,6 +494,7 @@ while True:
 
         STATUS_CHANGED = True
         STATUS = "main_page"
+        last_error_event = None
         continue
 
 

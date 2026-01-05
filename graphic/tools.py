@@ -2,6 +2,22 @@ from PIL import Image, ImageDraw, ImageFont
 from LCD.FB import LCDFrameBuffer
 from datetime import datetime
 import jdatetime
+import time
+
+def format_elapsed(seconds: float) -> str:
+    seconds = int(seconds)
+
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+
+    if h == 0:
+        return f"{m:02}:{s:02}"
+    elif h < 100:
+        return f"{h:02}:{m:02}:{s:02}"
+    else:
+        return f"{h:03}:{m:02}:{s:02}"
+
 
 class Tools:
     hist_type_png = {
@@ -17,7 +33,7 @@ class Tools:
         if not DND:
             draw.line([64, 34, 97, 48], width=2)
 
-    def draw_call_page(self, fb, number, type_):
+    def draw_call_page(self, fb, number, type_, call_start=None):
         img = Image.new("RGB", (fb.width, fb.height), color="white")
         draw = ImageDraw.Draw(img)
         self.draw_icon_2(draw, img, "./img/in.png", (13, 13), (1,1))
@@ -30,6 +46,10 @@ class Tools:
         draw.text((15, 3), type_dict[type_], font=name_font, fill="black")
         name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 12)
         draw.text((15, 18), number, font=name_font, fill="black")
+
+        if call_start:
+            name_font = ImageFont.truetype("fonts/dejavu-sans-mono/dejavu-sans-mono.book.ttf", 11)
+            draw.text((55, 2), f"({format_elapsed(time.monotonic() - call_start)})", font=name_font, fill="black")
 
         if type_=="incall":
             self.draw_buttons(draw, fb.width, fb.height, texts=("HngUp", "", "", ""))
