@@ -36,6 +36,23 @@ def handle_event(event):
         if event.get("event") == "state":
             global STATUS_CHANGED, STATUS
             if event["value"] == "IDLE":
+                if event.get('ended', False):
+                    response = requests.get("http://127.0.0.1:5000/play/call/reject.wav")
+                    if response.status_code != 200:
+                        print("Status:", response.status_code)
+                        print("Response:", response.text)
+                    
+                    if event['ended'] == "remote":
+                        time.sleep(1.8)
+                    elif event['ended'] == "self":
+                        time.sleep(0.4)
+
+                    response = requests.get("http://127.0.0.1:5000/stop")
+
+                    if response.status_code != 200:
+                        print("Status:", response.status_code)
+                        print("Response:", response.text)
+
                 STATUS_CHANGED = True
                 STATUS = 'main_page'
                 add_logout_item()
@@ -125,7 +142,7 @@ username_text = ""
 password_text = ""
 active_field = "username"
 
-capsOn = True
+capsOn = False
 
 
 while True:
@@ -171,9 +188,9 @@ while True:
                 if not DND:
                     response = requests.get("http://127.0.0.1:5000/play/ringtone/us-cellular-mello.wav")
 
-                if response.status_code != 200:
-                    print("Status:", response.status_code)
-                    print("Response:", response.text)
+                    if response.status_code != 200:
+                        print("Status:", response.status_code)
+                        print("Response:", response.text)
             except Exception as e:
                 print("Request error:", e)
                 pass
