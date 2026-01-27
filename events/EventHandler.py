@@ -221,6 +221,10 @@ class EventHandler:
                 changes["DND"] = True
                 changes['STATUS'] = STATUS
                 return changes
+            if pressed_button == 'Redial':
+                changes["REDIAL"] = True
+                changes['STATUS'] = "type_number"
+                return changes
             if pressed_button in set(['1', '2', '3', '4', '5', '6', '7', '8', '9','*', '0', '#']):
                 changes['STATUS'] = "type_number"
                 changes['FIRST_CHAR'] = pressed_button

@@ -30,6 +30,18 @@ class Call_handler:
         if changes.get("LOGIN", False):
             self._login(username, password)
 
+    def getContacts(self):
+        msg = {
+            "action": "getContacts"
+        }
+        self.callEngineClient.send(json.dumps(msg))
+
+    def getCalls(self):
+        msg = {
+            "action": "getCalls"
+        }
+        self.callEngineClient.send(json.dumps(msg))
+
     def _login(self, username, password):
         msg = {
             "action": "login",

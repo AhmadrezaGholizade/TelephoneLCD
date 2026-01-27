@@ -9,6 +9,7 @@ import jdatetime
 from server_sock.CallEngineClient import CallEngineClient
 import json
 from call_manager.call_handler import Call_handler
+import hardcoded_data
 from hardcoded_data import *
 import requests
 
@@ -29,13 +30,15 @@ call_start = None
 def handle_event(event):
     global last_event, login_state, last_error_event, call_start
     if event.get("action") != "ping" and event.get("event") != "pong":
-        print("EVENT RECEIVED:", event)
+        print_log = str(event)
+        print_log = print_log if len(print_log) < 500 else (print_log[:250] + "    ...    " + print_log[-150:])
+        print("EVENT RECEIVED:", print_log)
         last_event = event
 
     if isinstance(event, dict):
         if event.get("event") == "state":
             global STATUS_CHANGED, STATUS
-            if event["value"] == "IDLE":
+            if event.get("value",  "") == "IDLE":
                 if event.get('ended', False):
                     response = requests.get("http://127.0.0.1:5000/play/call/reject.wav")
                     if response.status_code != 200:
@@ -57,10 +60,10 @@ def handle_event(event):
                 STATUS = 'main_page'
                 add_logout_item()
                 print("IDLE: Return to main page")
-                login_state = event["user"]["phoneNumber"]
+                login_state = event["user"].get("phoneNumber", "?")
                 return
             
-            if event["value"] == "LOGGED_OUT":
+            if event.get("value",  "") == "LOGGED_OUT":
                 # STATUS_CHANGED = True
                 # STATUS = 'main_page'
                 add_login_item()
@@ -68,29 +71,38 @@ def handle_event(event):
                 login_state = None
                 return
 
-            if event["value"] == "ERROR":
+            if event.get("value",  "") == "ERROR":
                 STATUS = 'error'
                 last_error_event = event
                 return
             
-            if event["value"] == "RINGING":
+            if event.get("value",  "") == "RINGING":
                 STATUS_CHANGED = True
                 STATUS = 'ringing'
                 print("RINGING:  go to RINGING page")
                 return
             
-            if event["value"] == "INCALL":
+            if event.get("value",  "") == "INCALL":
                 STATUS_CHANGED = True
                 STATUS = 'incall'
                 call_start = time.monotonic()
                 print("CALL STARTED:  go to INCALL page")
                 return
 
-            if event["value"] == "CALLING":
+            if event.get("value",  "") == "CALLING":
                 STATUS_CHANGED = True
                 STATUS = 'calling'
                 print("CALLING:  go to CALLING page")
                 return
+
+        if event.get("event") == "data":
+            if event.get("type") == "contacts":
+                hardcoded_data.contacts = event.get("data", [])
+                STATUS_CHANGED = True
+            if event.get("type") == "calls":
+                hardcoded_data.history_calls = event.get("data", [])
+                STATUS_CHANGED = True
+
 
         if event.get("action") == "ping":
             ts = int(time.time() * 1000)
@@ -144,6 +156,9 @@ active_field = "username"
 
 capsOn = False
 
+renewed_contacts = False
+renewed_history = False
+
 
 while True:
     time.sleep(0.05)
@@ -179,6 +194,8 @@ while True:
 
         if changes.get("DND", False):
             DND = not DND
+        
+        
 
     # Ringing Page
     if STATUS=="ringing":
@@ -278,12 +295,21 @@ while True:
             if changes.get("ADD_CHAR", False):
                 number_typing += changes.get("ADD_CHAR", False)
             if changes.get("CALL_ITEM", False):
-                number_typing = contacts[ITEM_INDEX]['phone_number']
+                try: 
+                    number_typing = hardcoded_data.contacts[ITEM_INDEX]['phone_number']
+                except:
+                    pass
             if changes.get("CALL_HISTORY_ITEM", False):
-                number_typing = history_calls[ITEM_INDEX]["phone_number"].strip()
+                number_typing = hardcoded_data.history_calls[ITEM_INDEX]["phone_number"].strip()
             if changes.get("ERASE", False):
                 if number_typing:
                     number_typing = number_typing[:-1]
+            if changes.get("REDIAL", False):
+                callHandler.getCalls()
+                time.sleep(0.5)
+                for hist in hardcoded_data.history_calls:
+                    if hist["callerNickName"] == "SELF":
+                        number_typing = hist["receiverPhoneNum"]
             
         if STATUS_CHANGED:
             STATUS_CHANGED = False
@@ -304,13 +330,17 @@ while True:
 
 
     if STATUS=="history":
+        if not renewed_history:
+            callHandler.getCalls()
+            renewed_history = True
+
         if changes and changes.get("HISTORY_INDEX", 0) != 0:
             ITEM_INDEX += changes.get("HISTORY_INDEX", 0)
             if ITEM_INDEX < 0:
                 ITEM_INDEX = 0
                 continue
-            elif ITEM_INDEX >= len(history_calls):
-                ITEM_INDEX = len(history_calls) - 1
+            elif ITEM_INDEX >= len(hardcoded_data.history_calls):
+                ITEM_INDEX = len(hardcoded_data.history_calls) - 1
                 continue
             
             PAGE_NUMBER = ITEM_INDEX // 3
@@ -321,9 +351,9 @@ while True:
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
 
-            tools.draw_history_items(draw, img, history_calls, contacts, ITEM_INDEX, PAGE_NUMBER)
+            tools.draw_history_items(draw, img, hardcoded_data.history_calls, hardcoded_data.contacts, ITEM_INDEX, PAGE_NUMBER)
 
-            tools.draw_scrollbar(draw, PAGE_NUMBER, len(history_calls))
+            tools.draw_scrollbar(draw, PAGE_NUMBER, len(hardcoded_data.history_calls))
             tools.draw_buttons(draw, 124, fb.height, height=9,font_size=10,texts=("Back", "Detail", "", ""))
 
             fb.write(img)
@@ -368,26 +398,30 @@ while True:
             fb.write(img)
 
     elif STATUS == "contacts":
+        if not renewed_contacts:
+            callHandler.getContacts()
+            renewed_contacts = True
+
         if changes and changes.get("CONTACT_INDEX", 0) != 0:
             ITEM_INDEX += changes.get("CONTACT_INDEX", 0)
             if ITEM_INDEX < 0:
                 ITEM_INDEX = 0
                 continue
-            elif ITEM_INDEX >= len(contacts):
-                ITEM_INDEX = len(contacts) - 1
+            elif ITEM_INDEX >= len(hardcoded_data.contacts):
+                ITEM_INDEX = len(hardcoded_data.contacts) - 1
                 continue
             
             PAGE_NUMBER = ITEM_INDEX // 3
 
         if STATUS_CHANGED:
             STATUS_CHANGED = False
-        
+
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
 
             tools.draw_border(draw)
-            tools.draw_contact_rows(draw, contacts, ITEM_INDEX, PAGE_NUMBER)
-            tools.draw_scrollbar(draw, PAGE_NUMBER, len(contacts))
+            tools.draw_contact_rows(draw, hardcoded_data.contacts, ITEM_INDEX, PAGE_NUMBER)
+            tools.draw_scrollbar(draw, PAGE_NUMBER, len(hardcoded_data.contacts))
             # tools.draw_header(draw)
             tools.draw_buttons(draw, 124, fb.height, height=9, font_size=10,texts=("Back", "Detail", "Call", ""))
 
@@ -401,7 +435,7 @@ while True:
             draw = ImageDraw.Draw(img)
             tools.draw_border(draw)
 
-            tools.draw_contact_info(draw, img, contacts[ITEM_INDEX], fb.width, fb.height)
+            tools.draw_contact_info(draw, img, hardcoded_data.contacts[ITEM_INDEX], fb.width, fb.height)
 
             fb.write(img)
     
@@ -427,7 +461,7 @@ while True:
         if STATUS_CHANGED:
             STATUS_CHANGED = False
 
-            tools.render_history_info(fb, ITEM_INDEX, history_calls, hist_type_png, hist_type_text)
+            tools.render_history_info(fb, ITEM_INDEX, hardcoded_data.history_calls, hist_type_png, hist_type_text)
 
     elif STATUS == "login":
         if changes and changes.get("pressed_button", False):
@@ -515,6 +549,12 @@ while True:
         STATUS = "main_page"
         last_error_event = None
         continue
+
+    if STATUS != "contacts":
+        renewed_contacts = False
+
+    if STATUS != "history":
+        renewed_history = False
 
 
 

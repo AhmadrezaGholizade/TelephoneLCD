@@ -29,9 +29,13 @@ class Tools:
         self.draw_clock(draw)
         self.draw_date(draw)
         self.draw_id(draw, img, login_state)
-        self.draw_buttons(draw, width, height)
-        if not DND:
-            draw.line([64, 34, 97, 48], width=2)
+        if DND:
+            texts=("Hist.", "Redial", "DND ON", "Menu")
+        else: 
+            texts=("Hist.", "Redial", "DND OFF", "Menu")
+        self.draw_buttons(draw, width, height , texts=texts, img = img)
+        # if not DND:
+        #     draw.line([64, 34, 97, 48], width=2)
 
     def draw_call_page(self, fb, number, type_, call_start=None):
         img = Image.new("RGB", (fb.width, fb.height), color="white")
@@ -124,13 +128,13 @@ class Tools:
     def draw_buttons(self,draw,
                     fb_width,
                     fb_height,
-                    texts=("Hist.", "Redial", "DND", "Menu"),
+                    texts=("Hist.", "Redial", "DND OFF", "Menu"),
                     margin=1,
                     height=13,
                     font_path="fonts/MS_Sans_Serif.ttf",
                     font_size=11,
                     bg="black",
-                    fg="white"):
+                    fg="white", img = None):
 
         font = ImageFont.truetype(font_path, font_size)
         n = len(texts)
@@ -145,13 +149,18 @@ class Tools:
 
             cx = (x0 + x1) // 2 + 1
             cy = (y0 + y1) // 2 + 2
-            draw.text((cx, cy), txt, font=font, fill=fg, anchor="mm")
+            if txt == "DND ON":
+                self.draw_icon(draw, img, "./img/speaker_mute.png", (14, 14), (73, 34), color='white')
+            elif txt == "DND OFF":
+                self.draw_icon(draw, img, "./img/speaker.png", (14, 14), (73, 34), color='white')
+            else:
+                draw.text((cx, cy), txt, font=font, fill=fg, anchor="mm")
 
     def draw_contact_rows(self, draw, contacts, CONTACT_INDEX, CONTACT_PAGE_NUMBER):
         name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
 
         for n, i in enumerate(range(CONTACT_PAGE_NUMBER * 3, min(CONTACT_PAGE_NUMBER * 3 + 3, len(contacts)))):
-            name = contacts[i]["nick_name"].strip()
+            name = contacts[i]["nickName"].strip()
             print_name = name[:22] + "..." if len(name) > 22 else name
 
             # Black Theme for Selected Contact
@@ -173,6 +182,8 @@ class Tools:
 
     def draw_scrollbar(self, draw, CONTACT_PAGE_NUMBER, len_contacts):
         draw.rectangle([124, 0, 124, 48], fill="black") # seperator line
+        if len_contacts == 0:
+            return
         page_ratio = 3 / len_contacts * 48
         draw.rectangle([125, CONTACT_PAGE_NUMBER * page_ratio, 127, (CONTACT_PAGE_NUMBER + 1) * page_ratio], fill="black")
 
@@ -199,10 +210,10 @@ class Tools:
         self.draw_icon(draw, img, "./img/person.png", (14, 14), (3,3))
         self.draw_icon(draw, img, "./img/tel.png", (14, 14), (3,17))
 
-        name = contact["nick_name"].strip()
+        name = contact["nickName"].strip()
         print_name = name[:18] + "..." if len(name) > 18 else name
 
-        number = contact["phone_number"].strip()
+        number = contact["phoneNumber"].strip()
         print_number = number[:20] + "..." if len(number) > 20 else number
 
         name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 12)
@@ -216,7 +227,7 @@ class Tools:
 
         w = draw.textlength(print_number, font=number_font)
 
-        draw.text((x + w, y + 1), f"({contact['user_type'].strip()})",
+        draw.text((x + w, y + 1), f"({contact['protocolType'].strip()})",
                 font=type_font, fill="black")
 
         self.draw_buttons(draw, fb_width, fb_height, texts=("Back", "Call", "", ""))
@@ -251,10 +262,12 @@ class Tools:
     def draw_history_items(self, draw, img, history_calls, contacts, ITEM_INDEX, PAGE_NUMBER):
         name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
         for n, i in enumerate(range(PAGE_NUMBER * 3, min(PAGE_NUMBER * 3 + 3, len(history_calls)))):
-            name = history_calls[i]["phone_number"].strip()
-            for contact in contacts:
-                if contact["phone_number"] == name:
-                    name = contact["nick_name"]
+            SELF_IS_CALLER = True if history_calls[i]["callerNickName"] == "SELF" else False
+            name = ""
+            if SELF_IS_CALLER:
+                name = history_calls[i]["receiverNickName"] if history_calls[i]["receiverNickName"] != "UNKNOWN" else history_calls[i]["receiverPhoneNum"]
+            else: 
+                name = history_calls[i]["callerNickName"] if history_calls[i]["callerNickName"] != "UNKNOWN" else history_calls[i]["callerPhoneNum"]
 
             name = name[:15] + "..." if len(name) > 15 else name
 
@@ -264,7 +277,14 @@ class Tools:
                 color = "white"
                 draw.rectangle([11, 1 + 13 * n, 122, -1 + 13 * (n+1)], fill="black")
             
-            self.draw_icon_2(draw, img, self.hist_type_png[history_calls[i]["type"]], (13, 13), (0,n*12))
+            call_type = None
+            if history_calls[i]["callStatus"] == "FINISHED":
+                call_type = "outgoing" if SELF_IS_CALLER else "incoming"
+            else:
+                call_type = "missed"
+
+
+            self.draw_icon_2(draw, img, self.hist_type_png[call_type], (13, 13), (0,n*12))
             # Name    
             draw.text((12, 0 + 12 * n), name, font=name_font, fill=color)
     
@@ -315,20 +335,30 @@ class Tools:
 
         self.draw_icon(draw, img, "./img/tel.png", (11, 11), (2,1))
 
-        name = history_calls[ITEM_INDEX]["phone_number"].strip()
+        SELF_IS_CALLER = True if history_calls[ITEM_INDEX]["callerNickName"] == "SELF" else False
+
+        name = history_calls[ITEM_INDEX]["receiverPhoneNum"] if SELF_IS_CALLER else history_calls[ITEM_INDEX]["receiverPhoneNum"]
+        # name = history_calls[ITEM_INDEX]["phoneNumber"].strip()
         name = name[:15] + "..." if len(name) > 15 else name
+
+        call_type = None
+        if history_calls[ITEM_INDEX]["callStatus"] == "FINISHED":
+            call_type = "outgoing" if SELF_IS_CALLER else "incoming"
+        else:
+            call_type = "missed"
 
         name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 10)
         draw.text((14, 0), name, font=name_font, fill="black")
 
-        self.draw_icon_2(draw, img, hist_type_png[history_calls[ITEM_INDEX]["type"]], (13, 13), (0,13))
+
+        self.draw_icon_2(draw, img, hist_type_png[call_type], (13, 13), (0,13))
         name_font = ImageFont.truetype("fonts/fonts/Sahel-Bold.ttf", 9)
         number_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 10)
-        draw.text((14, 13), hist_type_text[history_calls[ITEM_INDEX]["type"]], font=number_font, fill="black")
+        draw.text((14, 13), hist_type_text[call_type], font=number_font, fill="black")
 
         self.draw_icon(draw, img, "./img/hist.png", (11, 11), (2,26))
 
-        dt_gregorian = datetime.fromtimestamp(history_calls[ITEM_INDEX]["timestamp"])
+        dt_gregorian = datetime.fromtimestamp(history_calls[ITEM_INDEX]["time"]//1000)
         dt_jalali = jdatetime.datetime.fromgregorian(datetime=dt_gregorian)
         draw.text((14, 26), dt_jalali.strftime("%Y/%m/%d %H:%M:%S"), font=number_font, fill="black")
 

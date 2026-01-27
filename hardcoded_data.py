@@ -16,87 +16,91 @@ menu_items = [
     ("DND", {"text": "DND", "icon_path": "img/DND.png"}),
     ("login", {"text": "Login", "icon_path": "img/login.png"}),
 ]
-contacts = [
-    {"nick_name": "Ali Rahmatlahi", "phone_number": "09123456789", "user_type": "SIP"},
-    {"nick_name": "حسین هزار دستان کلکچالی", "phone_number": "09123456789", "user_type": "SIP"},
-    {"nick_name": "احمدرضا قلی زاده تلیکانی اصل", "phone_number": "09123456789", "user_type": "SIP"},
-    {"nick_name": "Reza", "phone_number": "02144556677", "user_type": "SIP"},
-    {"nick_name": "سارا کریمی", "phone_number": "989121234567", "user_type": "WRTC"},
-    {"nick_name": "NimaNimaNimaNimaNimaNimaNimaNima", "phone_number": "447911123456", "user_type": "WRTC"},
-    {"nick_name": "Maryam", "phone_number": "0913555777", "user_type": "SIP"},
-    {"nick_name": "حسین", "phone_number": "120", "user_type": "SIP"},
-    {"nick_name": "هوتن", "phone_number": "004917612345678", "user_type": "WRTC"},
-    {"nick_name": "آرمان", "phone_number": "+5551234", "user_type": "WRTC"},
-    {"nick_name": "Zahra", "phone_number": "0012025550198", "user_type": "SIP"},
-    {"nick_name": "شکیبا", "phone_number": "888777666555", "user_type": "WRTC"},
-    {"nick_name": "مهدی", "phone_number": "09011223344", "user_type": "SIP"},
-    {"nick_name": "Navid", "phone_number": "987654321045", "user_type": "WRTC"},
-    {"nick_name": "Atena", "phone_number": "98765", "user_type": "WRTC"},
-    {"nick_name": "reza", "phone_number": "71001", "user_type": "WRTC"},
-    {"nick_name": "ali", "phone_number": "71002", "user_type": "WRTC"},
-]
-history_calls = [
-    {
-        "phone_number": "71002",
-        "type": "incoming",
-        "timestamp": 1734699220  # 2024-12-19 09:50:00
-    },
-    {
-        "phone_number": "71001",
-        "type": "incoming",
-        "timestamp": 1734599220  # 2024-12-19 09:50:00
-    },
-    {
-        "phone_number": "09123456789",
-        "type": "incoming",
-        "timestamp": 1734598200  # 2024-12-19 09:50:00
-    },
-    {
-        "phone_number": "4432",
-        "type": "incoming",
-        "timestamp": 1734598200  # 2024-12-19 09:50:00
-    },
-    {
-        "phone_number": "09123456789",
-        "type": "missed",
-        "timestamp": 1734594300  # 2024-12-19 08:45:00
-    },
-    {
-        "phone_number": "021556677",
-        "type": "outgoing",
-        "timestamp": 1734589800  # 2024-12-19 07:30:00
-    },
-    {
-        "phone_number": "989121234567",
-        "type": "incoming",
-        "timestamp": 1734546000  # 2024-12-18 19:20:00
-    },
-    {
-        "phone_number": "447911123456",
-        "type": "missed",
-        "timestamp": 1734517200  # 2024-12-18 11:00:00
-    },
-    {
-        "phone_number": "0901223344",
-        "type": "outgoing",
-        "timestamp": 1734474000  # 2024-12-17 23:00:00
-    },
-    {
-        "phone_number": "0012025550198",
-        "type": "incoming",
-        "timestamp": 1734438000  # 2024-12-17 13:00:00
-    },
-    {
-        "phone_number": "004917612345678",
-        "type": "missed",
-        "timestamp": 1734393000  # 2024-12-16 23:30:00
-    },
-    {
-        "phone_number": "004917612345678",
-        "type": "missed",
-        "timestamp": 1734393000  # 2024-12-16 23:30:00
-    }
-]
+# contacts = [
+#     {"nickName": "Ali Rahmatlahi", "phoneNumber": "09123456789", "protocolType": "SIP"},
+#     {"nickName": "حسین هزار دستان کلکچالی", "phoneNumber": "09123456789", "protocolType": "SIP"},
+#     {"nickName": "احمدرضا قلی زاده تلیکانی اصل", "phoneNumber": "09123456789", "protocolType": "SIP"},
+#     {"nickName": "Reza", "phoneNumber": "02144556677", "protocolType": "SIP"},
+#     {"nickName": "سارا کریمی", "phoneNumber": "989121234567", "protocolType": "WRTC"},
+#     {"nickName": "NimaNimaNimaNimaNimaNimaNimaNima", "phoneNumber": "447911123456", "protocolType": "WRTC"},
+#     {"nickName": "Maryam", "phoneNumber": "0913555777", "protocolType": "SIP"},
+#     {"nickName": "حسین", "phoneNumber": "120", "protocolType": "SIP"},
+#     {"nickName": "هوتن", "phoneNumber": "004917612345678", "protocolType": "WRTC"},
+#     {"nickName": "آرمان", "phoneNumber": "+5551234", "protocolType": "WRTC"},
+#     {"nickName": "Zahra", "phoneNumber": "0012025550198", "protocolType": "SIP"},
+#     {"nickName": "شکیبا", "phoneNumber": "888777666555", "protocolType": "WRTC"},
+#     {"nickName": "مهدی", "phoneNumber": "09011223344", "protocolType": "SIP"},
+#     {"nickName": "Navid", "phoneNumber": "987654321045", "protocolType": "WRTC"},
+#     {"nickName": "Atena", "phoneNumber": "98765", "protocolType": "WRTC"},
+#     {"nickName": "reza", "phoneNumber": "71001", "protocolType": "WRTC"},
+#     {"nickName": "ali", "phoneNumber": "71002", "protocolType": "WRTC"},
+# ]
+contacts = []
+
+# history_calls = [
+#     {
+#         "phoneNumber": "71002",
+#         "type": "incoming",
+#         "timestamp": 1734699220  # 2024-12-19 09:50:00
+#     },
+#     {
+#         "phoneNumber": "71001",
+#         "type": "incoming",
+#         "timestamp": 1734599220  # 2024-12-19 09:50:00
+#     },
+#     {
+#         "phoneNumber": "09123456789",
+#         "type": "incoming",
+#         "timestamp": 1734598200  # 2024-12-19 09:50:00
+#     },
+#     {
+#         "phoneNumber": "4432",
+#         "type": "incoming",
+#         "timestamp": 1734598200  # 2024-12-19 09:50:00
+#     },
+#     {
+#         "phoneNumber": "09123456789",
+#         "type": "missed",
+#         "timestamp": 1734594300  # 2024-12-19 08:45:00
+#     },
+#     {
+#         "phoneNumber": "021556677",
+#         "type": "outgoing",
+#         "timestamp": 1734589800  # 2024-12-19 07:30:00
+#     },
+#     {
+#         "phoneNumber": "989121234567",
+#         "type": "incoming",
+#         "timestamp": 1734546000  # 2024-12-18 19:20:00
+#     },
+#     {
+#         "phoneNumber": "447911123456",
+#         "type": "missed",
+#         "timestamp": 1734517200  # 2024-12-18 11:00:00
+#     },
+#     {
+#         "phoneNumber": "0901223344",
+#         "type": "outgoing",
+#         "timestamp": 1734474000  # 2024-12-17 23:00:00
+#     },
+#     {
+#         "phoneNumber": "0012025550198",
+#         "type": "incoming",
+#         "timestamp": 1734438000  # 2024-12-17 13:00:00
+#     },
+#     {
+#         "phoneNumber": "004917612345678",
+#         "type": "missed",
+#         "timestamp": 1734393000  # 2024-12-16 23:30:00
+#     },
+#     {
+#         "phoneNumber": "004917612345678",
+#         "type": "missed",
+#         "timestamp": 1734393000  # 2024-12-16 23:30:00
+#     }
+# ]
+
+history_calls = []
 
 CHARS={
     '0': ['0'],
