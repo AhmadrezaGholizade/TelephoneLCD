@@ -144,6 +144,9 @@ number_typing = ""
 
 DND = False
 
+volume_num = 30
+SPEAKER = True
+
 # Check the process of Ping Pong
 last_ping = time.monotonic()
 last_char_added_time = time.monotonic()
@@ -171,6 +174,7 @@ while True:
     # Get key changes
     changes = event_handler.handle_key(STATUS)
 
+
     # Handle Call orders from changes
     callHandler.main_handler(changes, number_typing, username_text, password_text)
 
@@ -179,6 +183,35 @@ while True:
 
     # Reset PAGE if changes is not None
     if changes:
+        print("CHANGES: ", changes)
+
+        if changes.get('VolumeDown', False):
+            if volume_num >= 10:
+                volume_num -= 10
+                if SPEAKER: 
+                    requests.get(f"http://127.0.0.1:5000/setVolume/{volume_num}")
+
+        if changes.get('VolumeUp', False):
+            if volume_num <= 90:
+                volume_num += 10
+                if SPEAKER: 
+                    requests.get(f"http://127.0.0.1:5000/setVolume/{volume_num}")
+
+        if changes.get('HEADSET_CHANGE', None) == "UP":
+            requests.get("http://127.0.0.1:5000/setVolume/0")
+            SPEAKER = False
+            print("VOLUME SET TO 0 BY HEADSET")
+            
+        elif changes.get('HEADSET_CHANGE', None) == "DOWN":
+            requests.get(f"http://127.0.0.1:5000/setVolume/{volume_num}")
+            SPEAKER = True
+            print("VOLUME SET TO 50 BY HEADSET")
+
+        if changes.get('SPEAKER', False):
+            requests.get(f"http://127.0.0.1:5000/setVolume/{volume_num}")
+            SPEAKER = True
+            print("VOLUME SET TO 50 BY SPEAKER BUTTON")
+        
         if changes.get('STATUS', False):
             STATUS_CHANGED = True
             STATUS = changes['STATUS']
@@ -202,7 +235,11 @@ while True:
 
         if STATUS_CHANGED:
             try:
+                print("VOLUME SET TO 50 BY RINGTONE")
+                requests.get(f"http://127.0.0.1:5000/setVolume/{volume_num}")
+                SPEAKER = True
                 if not DND:
+                    
                     response = requests.get("http://127.0.0.1:5000/play/ringtone/us-cellular-mello.wav")
 
                     if response.status_code != 200:

@@ -89,6 +89,17 @@ def stop():
     
     return jsonify({"status": "Nothing is playing"})
 
+@app.route("/setVolume/<int:level>", methods=["GET"])
+def set_volume(level):
+    # Validate volume level (0-100)
+    if level < 0 or level > 100:
+        return jsonify({"error": "Volume must be between 0 and 100"}), 400
+    
+    # Set the volume
+    subprocess.run(["amixer", "set", "'Speaker Analog'", f"{level}%"])
+    
+    return jsonify({"status": f"Volume set to {level}%"})
+
 if __name__ == "__main__":
     # Run on all interfaces, port 5000
     app.run(host="0.0.0.0", port=5000)

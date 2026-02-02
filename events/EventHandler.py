@@ -49,22 +49,18 @@ class EventHandler:
             self.screen_light_status = True
             fb.screen_on()    
 
-    def _call(self):
-        return {
-            'CALL': True
-        }
-    def _answer(self):
-        return {
-            'ANSWER': True
-        }
-    def _hangUp(self):
-        return {
-            'HANGUP': True
-        }
-    def _reject(self):
-        return {
-            'REJECT': True
-        }
+    def _call(self,changes):
+        changes['CALL'] = True
+        return changes
+    def _answer(self, changes):
+        changes['ANSWER'] = True
+        return changes
+    def _hangUp(self, changes):
+        changes['HANGUP'] = True
+        return changes
+    def _reject(self, changes):
+        changes['REJECT'] = True
+        return changes
 
     def handle_key(self, STATUS):
         state = self.get_phone_state()
@@ -97,6 +93,11 @@ class EventHandler:
 
         changes = dict()
 
+        if self.phone_status_changed and phone_status == "UP":
+            changes['HEADSET_CHANGE'] = "UP"
+        if self.phone_status_changed and phone_status == "DOWN":
+            changes['HEADSET_CHANGE'] = "DOWN"
+
         if STATUS == 'login':
             if pressed_button == 'Hist':
                 changes['STATUS'] = "menu"
@@ -124,28 +125,31 @@ class EventHandler:
 
         # Phone state changes
         if STATUS == 'type_number':
-            if self.phone_status_changed and phone_status == "UP":
-                return self._call()
+            if (self.phone_status_changed and phone_status == "UP") or pressed_button == 'Speaker':
+                return self._call(changes)
+
 
         if STATUS == 'ringing':
             if self.phone_status_changed and phone_status == "UP":
-                return self._answer()
+                return self._answer(changes)
 
         if STATUS == 'incall':
             if self.phone_status_changed and phone_status == "DOWN":
-                return self._hangUp()
+                return self._hangUp(changes)
 
         if STATUS == 'calling':
             if self.phone_status_changed and phone_status == "DOWN":
-                return self._hangUp()
+                return self._hangUp(changes)
         
 
         if self.phone_status_changed and phone_status == "UP" and (STATUS not in ['incall', 'calling', 'ringing']):
+            
             changes['STATUS'] = "type_number"
             if STATUS != 'type_number':
                 changes['FIRST_CHAR'] = ""
             return changes
         if self.phone_status_changed and phone_status == "DOWN" and (STATUS not in ['incall', 'calling', 'ringing']):
+            
             changes['STATUS'] = "main_page"
             return changes
 
@@ -262,7 +266,7 @@ class EventHandler:
                 changes['STATUS'] = 'main_page'
                 return changes
             if pressed_button == 'Redial':
-                return self._call()
+                return self._call(changes)
             if pressed_button == 'DND':
                 changes['STATUS'] = STATUS
                 changes['ERASE'] = True
@@ -274,13 +278,13 @@ class EventHandler:
 
         if STATUS == 'ringing':
             if pressed_button == 'Hist':
-                return self._answer()
+                return self._answer(changes)
             if pressed_button == 'Redial':
-                return self._reject()
+                return self._reject(changes)
             
         if STATUS in ['calling', 'incall']:
             if pressed_button == 'Hist':
-                return self._hangUp()
+                return self._hangUp(changes)
             
         
         if STATUS == 'logout':
@@ -292,6 +296,16 @@ class EventHandler:
                 changes['LOGOUT'] = True
                 return changes
 
+        if pressed_button == 'Speaker':
+            changes['SPEAKER'] = True
+        elif pressed_button == "VolumeDown":
+            changes['VolumeDown'] = True
+        elif pressed_button == "VolumeUp":
+            changes['VolumeUp'] = True
+
+        return changes
+
+        
 
 
         

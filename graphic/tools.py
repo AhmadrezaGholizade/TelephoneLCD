@@ -47,7 +47,7 @@ class Tools:
             "ringing": "INCOMING CALL...",
             "calling": "OUTGOING CALL...",
         }
-        draw.text((15, 3), type_dict[type_], font=name_font, fill="black")
+        draw.text((15, 3), type_dict.get(type_, ""), font=name_font, fill="black")
         name_font = ImageFont.truetype("fonts/MS_Sans_Serif.ttf", 12)
         draw.text((15, 18), number, font=name_font, fill="black")
 
