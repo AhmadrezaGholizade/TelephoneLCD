@@ -10,16 +10,23 @@ import os
 EVENT_FORMAT = 'llHHi'
 EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
 
-event_queue = deque(maxlen=6)
+event_queue = deque(maxlen=2)
 
 BUTTONS = {
-    0: "Mail", 1: "Ok", 2: "Up", 3: "9", 4: "8", 5: "7",
-    6: "Mute", 7: "Retry", 8: "Headphone", 9: "L1", 10: "6",
-    11: "5", 12: "4", 13: "VolumeDown", 14: "Speaker", 15: "Book",
-    16: "3", 17: "2", 18: "1", 19: "Left", 20: "L2",
-    21: "Menu", 22: "Redial", 23: "DND", 24: "Hist", 25: "Stop",
-    26: "VolumeUp", 27: "Right", 28: "#", 29: "Next", 30: "Down",
-    31: "0", 32: "Team", 33: "*"
+    24: "Hist", 22: "Redial", 23: "DND", 21: "Menu",
+    18: "1", 17: "2", 16: "3",
+    12: "4", 11: "5", 10: "6",
+    5: "7", 4: "8", 3: "9",
+    33: "*", 31: "0", 28: "#",
+    14: "Speaker", 6: "Mute",
+    13: "VolumeDown", 26: "VolumeUp",
+    7: "Retry", 8: "Headphone",
+    20: "L2", 9: "L1",
+    0: "Mail", 15: "Book",
+    25: "Stop", 29: "Next",
+    32: "Team", 1: "Ok",
+    2: "Up", 27: "Right",
+    19: "Left", 30: "Down",
 }
 
 # Shared state (protected by lock for thread safety)
@@ -48,37 +55,32 @@ def monitor_device():
                     continue
 
                 tv_sec, tv_usec, ev_type, code, value = struct.unpack(EVENT_FORMAT, data)
+
                 if not ev_type and not code and not value:
                     continue
 
                 # Handset lift detection
-                if code == 88 and ev_type == 1:  # KEY_HEADSETHOOK
+                if ev_type == 1 and code == 88:
                     new_status = "DOWN" if value else "UP"
                     with state_lock:
                         PHONE_STATUS = new_status
-                        print(f"Phone status changed: {PHONE_STATUS}")
                     continue
 
+                # Button label mapping
+                if ev_type == 4 and code == 4:
+                    value = BUTTONS.get(value, str(value))
+
                 event = {"Type": ev_type, "Code": code, "Value": value}
-                if event["Type"] == 4 and event["Code"] == 4:
-                    event["Button"] = BUTTONS.get(value, f"Unknown({value})")
-                # event_queue.append(event)
+                event_queue.append(event)
 
-                # events = list(event_queue)
-                
-                # if events[-1]["Type"] == 4 and events[-1]["Code"] == 4:
-                #     print("Latest Events:")
-                #     for e in events:
-                #         print(f"    +   {e}")
-
-
-                    if PRESSED_BUTTON is None:
-                        PRESSED_BUTTON = event.get("Button", None)
-                    else:
-                        if event["Button"] == PRESSED_BUTTON:
+                events = list(event_queue)
+                with state_lock:
+                    if len(events) >= 1 and events[-1]["Type"] == 4:
+                        if len(events) == 1 or events[-2]["Value"] == 0:
+                            PRESSED_BUTTON = events[-1]["Value"]
+                        elif events[-2]["Value"] == 1:
                             PRESSED_BUTTON = None
 
-                    print("PRESSED_BUTTON:", PRESSED_BUTTON)
     except KeyboardInterrupt:
         print("\nMonitor stopped.")
     except Exception as e:
@@ -135,5 +137,3 @@ if __name__ == "__main__":
 
     # Run the device monitor in the main thread
     monitor_device()
-
-

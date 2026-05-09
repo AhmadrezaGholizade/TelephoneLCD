@@ -41,7 +41,7 @@ class EventHandler:
             print(f"Could not connect to monitor: {e}")
         return None
 
-    def check_light_timeout(self, fb, timeout = 10000):
+    def check_light_timeout(self, fb, timeout = 30):
         if (time.monotonic() - self.last_action_time) > timeout:
             self.screen_light_status = False
             fb.screen_off()
@@ -114,12 +114,12 @@ class EventHandler:
         # Handle repitition of keys
         if len(self.button_queue) != 0:
             last_button, last_time = self.button_queue[-1]
-            if now - last_time > 0.2:
+            if now - last_time > 0.3:
                 self.button_queue = deque(maxlen=3)
             else:
                 if pressed_button == last_button:
                     if not self._all_same(pressed_button):
-                        if now - last_time <= 0.1:
+                        if now - last_time <= 0.25:
                             return None
         self._push(pressed_button, now)
 
