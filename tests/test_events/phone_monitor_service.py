@@ -6,6 +6,7 @@ import socket
 import json
 from collections import deque
 import os
+import time
 
 EVENT_FORMAT = 'llHHi'
 EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
@@ -29,8 +30,11 @@ PHONE_STATUS = "DOWN"
 
 SOCKET_PATH = "/run/phone_monitor.sock"  # Path to the socket file
 
+last_event_time = 0
+ignore_next = False
+
 def monitor_device():
-    global PRESSED_BUTTON, PHONE_STATUS
+    global PRESSED_BUTTON, PHONE_STATUS, last_event_time, ignore_next
 
     print("Monitoring phone events... (Press Ctrl+C to stop)")
 
@@ -56,29 +60,38 @@ def monitor_device():
                     new_status = "DOWN" if value else "UP"
                     with state_lock:
                         PHONE_STATUS = new_status
-                        print(f"Phone status changed: {PHONE_STATUS}")
+                        # print(f"Phone status changed: {PHONE_STATUS}")
                     continue
 
                 event = {"Type": ev_type, "Code": code, "Value": value}
+                # print(f"{time.time()} Event: {event} {(last_event_time - time.time()):.2f}s")
+
                 if event["Type"] == 4 and event["Code"] == 4:
                     event["Button"] = BUTTONS.get(value, f"Unknown({value})")
-                # event_queue.append(event)
-
-                # events = list(event_queue)
-                
-                # if events[-1]["Type"] == 4 and events[-1]["Code"] == 4:
-                #     print("Latest Events:")
-                #     for e in events:
-                #         print(f"    +   {e}")
-
-
-                    if PRESSED_BUTTON is None:
+                    if abs(last_event_time - time.time()) < 0.05:
+                        ignore_next = True
+                        # print("Ignoring next event due to rapid succession.")
+                    elif (PRESSED_BUTTON is None) and (not ignore_next):
+                        # print(f"ignore_next = {ignore_next}")
                         PRESSED_BUTTON = event.get("Button", None)
+                        ignore_next = False
+                    elif ignore_next:
+                        ignore_next = False
+                        if event["Button"] == PRESSED_BUTTON:
+                            PRESSED_BUTTON = None
+                            ignore_next = False
                     else:
                         if event["Button"] == PRESSED_BUTTON:
                             PRESSED_BUTTON = None
+                            ignore_next = False 
 
-                    print("PRESSED_BUTTON:", PRESSED_BUTTON)
+
+
+                    # print("PRESSED_BUTTON:", PRESSED_BUTTON)
+
+                    last_event_time = time.time()
+
+                    
     except KeyboardInterrupt:
         print("\nMonitor stopped.")
     except Exception as e:
