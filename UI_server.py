@@ -507,9 +507,9 @@ while True:
             if pressed in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "#"]:
                 
 
-                if (pressed == last_pressed) and (time.monotonic() - last_char_added_time) < 0.5:
+                if (pressed == last_pressed) and (time.monotonic() - last_char_added_time) < 0.3:
                     continue
-                elif (pressed == last_pressed) and (time.monotonic() - last_char_added_time) < 1.2:
+                elif (pressed == last_pressed) and (time.monotonic() - last_char_added_time) < 0.8:
                     char_index += 1
                     if char_index >= len(CHARS[pressed]):
                         char_index = 0      
@@ -559,6 +559,7 @@ while True:
                         username_text = username_text[:-1]
                     elif active_field == "password" and password_text:
                         password_text = password_text[:-1]
+                    last_pressed = None
                     STATUS_CHANGED = True
 
 
@@ -605,4 +606,6 @@ while True:
 
             
     
+
+
 
