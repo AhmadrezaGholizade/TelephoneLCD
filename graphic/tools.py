@@ -121,7 +121,7 @@ class Tools:
             if connected_to_janus:
                 self.draw_icon(draw, img, "./img/tel.png", icon_size, icon_pos)
             else:
-                self.draw_icon(draw, img, "./img/forbidden.png", icon_size, icon_pos)
+                self.draw_icon(draw, img, "./img/forbidden.png", (11, 11), (74, 4))
 
             draw.text(text_pos, login_state, font=font, fill=color, anchor="mm")
         else: 
