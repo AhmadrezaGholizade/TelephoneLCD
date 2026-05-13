@@ -13,6 +13,7 @@ import hardcoded_data
 from hardcoded_data import *
 import requests
 
+connected_to_janus = False
 def add_login_item():
     global menu_items
     menu_items = menu_items[0:5]
@@ -22,13 +23,12 @@ def add_logout_item():
     menu_items = menu_items[0:5]
     menu_items.append(("logout", {"text": "Logout", "icon_path": "img/logout.png"}))
 
-
 last_event = None
 last_error_event = None
 login_state = False
 call_start = None
 def handle_event(event):
-    global last_event, login_state, last_error_event, call_start
+    global last_event, login_state, last_error_event, call_start, connected_to_janus
     if event.get("action") != "ping" and event.get("event") != "pong":
         print_log = str(event)
         print_log = print_log if len(print_log) < 500 else (print_log[:250] + "    ...    " + print_log[-150:])
@@ -38,7 +38,11 @@ def handle_event(event):
     if isinstance(event, dict):
         if event.get("event") == "state":
             global STATUS_CHANGED, STATUS
-            if event.get("value",  "") == "IDLE":
+            if event.get("value",  "") in ("IDLE", "DISCONNECTED"):
+                if event["value"] == "IDLE":
+                    connected_to_janus = True
+                else:
+                    connected_to_janus = False
                 if event.get('ended', False):
                     response = requests.get("http://127.0.0.1:5000/play/call/reject.wav")
                     if response.status_code != 200:
@@ -484,7 +488,7 @@ while True:
                 STATUS_CHANGED = False
             img = Image.new("RGB", (fb.width, fb.height), color="white")
             draw = ImageDraw.Draw(img)
-            tools.render_main_page(draw, img, fb.width, fb.height, login_state, DND)
+            tools.render_main_page(draw, img, fb.width, fb.height, login_state, DND, connected_to_janus)
             fb.write(img)
             last_minute = now.minute
         else:

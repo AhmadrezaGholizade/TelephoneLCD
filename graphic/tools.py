@@ -25,10 +25,10 @@ class Tools:
         "incoming": "./img/in.png",
         "outgoing": "./img/out.png"
     }
-    def render_main_page(self, draw, img, width, height, login_state, DND):
+    def render_main_page(self, draw, img, width, height, login_state, DND, connected_to_janus):
         self.draw_clock(draw)
         self.draw_date(draw)
-        self.draw_id(draw, img, login_state)
+        self.draw_id(draw, img, login_state, connected_to_janus)
         if DND:
             texts=("Hist.", "Redial", "DND ON", "Menu")
         else: 
@@ -108,7 +108,8 @@ class Tools:
 
     def draw_id(self,draw,
                 img, login_state,
-                icon_path="./img/tel.png",
+                connected_to_janus,
+                # icon_path="./img/tel.png",
                 icon_pos=(72, 3),
                 icon_size=(14, 14),
                 text_pos=(106, 10),
@@ -117,7 +118,10 @@ class Tools:
                 color="black"):
         if login_state:
             font = ImageFont.truetype(font_path, font_size)
-            self.draw_icon(draw, img, icon_path, icon_size, icon_pos)
+            if connected_to_janus:
+                self.draw_icon(draw, img, "./img/tel.png", icon_size, icon_pos)
+            else:
+                self.draw_icon(draw, img, "./img/forbidden.png", icon_size, icon_pos)
 
             draw.text(text_pos, login_state, font=font, fill=color, anchor="mm")
         else: 
