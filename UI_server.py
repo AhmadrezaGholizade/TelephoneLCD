@@ -418,6 +418,7 @@ while True:
             PAGE_NUMBER = 0
             username_text = ""
             password_text = ""
+            active_field = "username"
             STATUS_CHANGED = True
             last_char_added_time = time.monotonic()
             last_pressed = changes.get("key", False)

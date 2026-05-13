@@ -114,12 +114,12 @@ class EventHandler:
         # Handle repitition of keys
         if len(self.button_queue) != 0:
             last_button, last_time = self.button_queue[-1]
-            if now - last_time > 0.3:
+            if now - last_time > 0.2:
                 self.button_queue = deque(maxlen=3)
             else:
                 if pressed_button == last_button:
                     if not self._all_same(pressed_button):
-                        if now - last_time <= 0.25:
+                        if now - last_time <= 0.18:
                             return None
         self._push(pressed_button, now)
 
