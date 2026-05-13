@@ -33,8 +33,20 @@ SOCKET_PATH = "/run/phone_monitor.sock"  # Path to the socket file
 last_event_time = 0
 ignore_next = False
 
+BUTTON_HOLD_TIMEOUT = 5.0
+BUTTON_PRESS_TIME = None
+
+def check_button_timeout():
+    global PRESSED_BUTTON, BUTTON_PRESS_TIME
+    with state_lock:
+        if PRESSED_BUTTON is not None and BUTTON_PRESS_TIME is not None:
+            if time.time() - BUTTON_PRESS_TIME > BUTTON_HOLD_TIMEOUT:
+                print(f"Button '{PRESSED_BUTTON}' held for >{BUTTON_HOLD_TIMEOUT}s, resetting")
+                PRESSED_BUTTON = None
+                BUTTON_PRESS_TIME = None
+
 def monitor_device():
-    global PRESSED_BUTTON, PHONE_STATUS, last_event_time, ignore_next
+    global PRESSED_BUTTON, PHONE_STATUS, last_event_time, ignore_next, BUTTON_PRESS_TIME
 
     print("Monitoring phone events... (Press Ctrl+C to stop)")
 
@@ -46,6 +58,7 @@ def monitor_device():
     try:
         while True:
             readable, _, _ = select.select(fds.values(), [], [], 0.1)
+            check_button_timeout()
             for fd in readable:
                 data = fd.read(EVENT_SIZE)
                 if len(data) != EVENT_SIZE:
@@ -74,6 +87,7 @@ def monitor_device():
                     elif (PRESSED_BUTTON is None) and (not ignore_next):
                         # print(f"ignore_next = {ignore_next}")
                         PRESSED_BUTTON = event.get("Button", None)
+                        BUTTON_PRESS_TIME = time.time()
                         ignore_next = False
                     elif ignore_next:
                         ignore_next = False
@@ -83,6 +97,7 @@ def monitor_device():
                     else:
                         if event["Button"] == PRESSED_BUTTON:
                             PRESSED_BUTTON = None
+                            BUTTON_PRESS_TIME = None
                             ignore_next = False 
 
 
